@@ -91,7 +91,7 @@ export default function AdminLayout({
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 flex flex-col relative max-h-screen overflow-y-auto">
+        <main data-lenis-prevent className="flex-1 flex flex-col relative max-h-screen overflow-y-auto">
           {/* Subtle background glow */}
           <div className="absolute top-0 right-0 w-96 h-96 bg-gold-900/5 blur-[150px] rounded-full pointer-events-none" />
           
