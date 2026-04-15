@@ -97,6 +97,7 @@ export function ConfirmationStep({ therapist, date, onBack, requestedService }: 
 
   return (
     <div className="w-full max-w-3xl mx-auto pb-32">
+      {/* TODO: EXPERIMENTO DO BOTAO ACCEPT - IGNORAR ESTA LINHA */}
       <button 
         onClick={onBack}
         className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-8 group"

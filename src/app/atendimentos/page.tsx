@@ -3,6 +3,7 @@ import { Sparkles, Star, Compass, Eye, Brain, Sun, Moon, Component as FallbackIc
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import type { DatabaseService } from "@/lib/types";
+import { GoldenParticles } from "@/components/ui/GoldenParticles";
 
 // Helper de mapeamento de ícones do DB
 const iconMap: Record<string, any> = {
@@ -21,16 +22,15 @@ export default async function AtendimentosPage() {
     .from("services")
     .select("*")
     .eq("is_active", true)
-    .order("created_at", { ascending: true });
+    .order("order_index", { ascending: true });
     
   const services = (servicesData as DatabaseService[]) || [];
   return (
     <div className="min-h-screen pt-32 pb-24 relative overflow-hidden">
-      {/* Background gradients */}
-      <div className="absolute top-1/4 left-0 w-96 h-96 bg-gold-900/10 blur-[150px] rounded-full -z-10" />
-      <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-midnight-800/40 blur-[150px] rounded-full -z-10" />
+      {/* Background animado e fundo paralax novo */}
+      <GoldenParticles />
 
-      <div className="container mx-auto px-6">
+      <div className="container mx-auto px-6 relative z-10">
         <div className="max-w-4xl mx-auto text-center mb-24">
           <RevealText delay={0.1} element="div" className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gold-500/10 border border-gold-500/20 text-gold-400 text-xs font-medium tracking-widest uppercase mb-6">
             Jornadas de Transmutação
@@ -47,7 +47,7 @@ export default async function AtendimentosPage() {
           {services.map((service, index) => {
             const Icon = iconMap[service.icon] || FallbackIcon;
             return (
-              <RevealText key={service.id} delay={0.2 + index * 0.1} className={`h-full ${index === 0 || index === 3 ? 'md:col-span-2 lg:col-span-2' : ''}`}>
+              <RevealText key={service.id} delay={0.2 + index * 0.1} className={`h-full ${service.is_featured ? 'md:col-span-2 lg:col-span-2' : ''}`}>
                 <Link href={`/atendimentos/${service.slug}`} className="block group h-full bg-midnight-900/40 backdrop-blur-md border border-white/5 rounded-3xl p-8 hover:bg-midnight-800/60 hover:border-gold-500/30 transition-all duration-500 flex flex-col relative overflow-hidden cursor-pointer">
                   
                   {/* Decorative glow on hover */}

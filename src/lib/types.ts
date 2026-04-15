@@ -34,6 +34,8 @@ export interface DatabaseService {
   benefits: string[];
   icon: string;
   is_active: boolean;
+  is_featured: boolean;
+  order_index: number;
   created_at?: string;
 }
 

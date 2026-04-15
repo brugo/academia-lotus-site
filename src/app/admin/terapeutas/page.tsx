@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { Plus, Edit2, CheckCircle2, UserCircle, Star } from "lucide-react";
+import { Plus, Edit2, CheckCircle2, UserCircle, Star, Trash2, AlertTriangle, GripVertical } from "lucide-react";
 import { ImageUploader } from "@/components/admin/ImageUploader";
 import Image from "next/image";
 
@@ -17,6 +17,7 @@ type Therapist = {
   base_price: number;
   is_active: boolean;
   supported_services: string[];
+  order_index: number;
 };
 
 export default function TerapeutasAdminPage() {
@@ -25,8 +26,10 @@ export default function TerapeutasAdminPage() {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
+  const [therapistToDelete, setTherapistToDelete] = useState<Therapist | null>(null);
   const [formData, setFormData] = useState<Partial<Therapist>>({
-    name: "", specialty: "", bio: "", email: "", google_calendar_id: "", photo_url: "/user-placeholder.png", base_price: 150, is_active: true, supported_services: []
+    name: "", specialty: "", bio: "", email: "", google_calendar_id: "", photo_url: "/user-placeholder.png", base_price: 150, is_active: true, supported_services: [], order_index: 0
   });
 
   useEffect(() => {
@@ -36,12 +39,47 @@ export default function TerapeutasAdminPage() {
   const fetchTherapistsAndServices = async () => {
     setLoading(true);
     const [tRes, sRes] = await Promise.all([
-      supabase.from("therapists").select("*").order("created_at", { ascending: false }),
+      supabase.from("therapists").select("*").order("order_index", { ascending: true }),
       supabase.from("services").select("title, slug").eq("is_active", true)
     ]);
     if (tRes.data) setTherapists(tRes.data);
     if (sRes.data) setServices(sRes.data);
     setLoading(false);
+  };
+
+  const handleDelete = async () => {
+    if (!therapistToDelete) return;
+    await supabase.from("therapists").delete().eq("id", therapistToDelete.id);
+    setTherapistToDelete(null);
+    fetchTherapistsAndServices();
+  };
+
+  const handleDragStart = (index: number) => {
+    setDraggedIdx(index);
+  };
+
+  const handleDragEnter = (targetIndex: number) => {
+    if (draggedIdx === null || draggedIdx === targetIndex) return;
+    const newItems = [...therapists];
+    const draggedItem = newItems[draggedIdx];
+    newItems.splice(draggedIdx, 1);
+    newItems.splice(targetIndex, 0, draggedItem);
+    
+    // Atualiza os índices visualmente em tempo real
+    const reindexedItems = newItems.map((item, idx) => ({...item, order_index: idx}));
+    setDraggedIdx(targetIndex);
+    setTherapists(reindexedItems);
+  };
+
+  const handleDragEnd = async () => {
+    setDraggedIdx(null);
+    
+    // Só atualizamos no banco após soltar o mouse (otimização de banco)
+    const promises = therapists.map((t, idx) => 
+      supabase.from("therapists").update({ order_index: idx }).eq("id", t.id)
+    );
+    
+    await Promise.all(promises);
   };
 
   const handleSave = async () => {
@@ -61,7 +99,7 @@ export default function TerapeutasAdminPage() {
     
     setShowAddForm(false);
     setIsEditing(null);
-    setFormData({ name: "", specialty: "", bio: "", email: "", google_calendar_id: "", photo_url: "/user-placeholder.png", base_price: 150, is_active: true, supported_services: [] });
+    setFormData({ name: "", specialty: "", bio: "", email: "", google_calendar_id: "", photo_url: "/user-placeholder.png", base_price: 150, is_active: true, supported_services: [], order_index: 0 });
     fetchTherapistsAndServices();
   };
 
@@ -128,7 +166,7 @@ export default function TerapeutasAdminPage() {
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4 md:col-span-2">
               <label className="text-sm font-medium text-slate-300 block">Foto de Rosto (Upload ou Link)</label>
               <ImageUploader 
                 currentImageUrl={formData.photo_url === '/user-placeholder.png' ? null : formData.photo_url} 
@@ -186,15 +224,28 @@ export default function TerapeutasAdminPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {therapists.map((t) => (
-            <div key={t.id} className={`p-5 rounded-2xl border transition-all flex flex-col sm:flex-row gap-5 relative group ${t.is_active ? 'bg-white/5 border-white/10 hover:border-gold-500/30' : 'bg-black/20 border-white/5 opacity-50'}`}>
+          {therapists.map((t, index) => (
+            <div 
+              key={t.id} 
+              draggable
+              onDragStart={() => handleDragStart(index)}
+              onDragEnter={() => handleDragEnter(index)}
+              onDragEnd={handleDragEnd}
+              onDragOver={(e) => e.preventDefault()}
+              className={`p-5 rounded-2xl border transition-all flex flex-col sm:flex-row gap-5 relative group cursor-grab active:cursor-grabbing ${draggedIdx === index ? 'opacity-40 border-gold-500 scale-[0.98]' : ''} ${t.is_active ? 'bg-white/5 border-white/10 hover:border-gold-500/30' : 'bg-black/20 border-white/5 opacity-50'}`}
+            >
               
-              <div className="w-16 h-16 rounded-full bg-midnight-950 border border-white/20 overflow-hidden flex-shrink-0 flex items-center justify-center">
+              <div className="hidden sm:flex items-center justify-center text-slate-600 px-2 opacity-50 group-hover:opacity-100 transition-opacity">
+                <GripVertical size={20} />
+              </div>
+
+              <div className="w-16 h-16 rounded-full bg-midnight-950 border border-white/20 overflow-hidden flex-shrink-0 flex items-center justify-center pointer-events-none">
                 {t.photo_url !== '/user-placeholder.png' ? <img src={t.photo_url} alt={t.name} className="w-full h-full object-cover" /> : <UserCircle size={40} className="text-slate-500" />}
               </div>
               
-              <div className="flex-1 flex flex-col justify-center">
+              <div className="flex-1 flex flex-col justify-center pointer-events-none">
                 <h3 className="text-lg font-medium text-white flex items-center gap-2">
+                  <span className="bg-white/10 text-slate-300 text-xs px-2 py-0.5 rounded-md border border-white/5">#{index + 1}</span>
                   {t.name}
                   {t.is_active && <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" title="Ativo" />}
                 </h3>
@@ -205,12 +256,22 @@ export default function TerapeutasAdminPage() {
                 </div>
               </div>
 
-              <button 
-                onClick={() => editTherapist(t)}
-                className="absolute top-4 right-4 p-2 bg-white/5 hover:bg-gold-500/20 text-slate-400 hover:text-gold-400 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-              >
-                <Edit2 size={16} />
-              </button>
+              <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                <button 
+                  onClick={() => editTherapist(t)}
+                  className="p-2 bg-white/5 hover:bg-gold-500/20 text-slate-400 hover:text-gold-400 rounded-lg transition-all"
+                  title="Editar"
+                >
+                  <Edit2 size={16} />
+                </button>
+                <button 
+                  onClick={() => setTherapistToDelete(t)}
+                  className="p-2 bg-white/5 hover:bg-red-500/20 text-slate-400 hover:text-red-400 rounded-lg transition-all"
+                  title="Excluir Definitivamente"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
             </div>
           ))}
           {therapists.length === 0 && !showAddForm && (
@@ -221,6 +282,40 @@ export default function TerapeutasAdminPage() {
               </button>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Modal de Exclusão */}
+      {therapistToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-gradient-to-b from-midnight-900 to-midnight-950 border border-white/10 rounded-3xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden text-center">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/10 blur-[50px] rounded-full pointer-events-none" />
+            
+            <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.2)]">
+              <AlertTriangle className="text-red-400" size={32} />
+            </div>
+            
+            <h3 className="text-2xl font-serif text-white mb-2">Desligamento Permanente</h3>
+            <p className="text-slate-400 font-light text-sm mb-8">
+              Você está prestes a apagar definitivamente <strong className="text-white font-medium">{therapistToDelete.name}</strong> das esferas do sistema. 
+              Esta ação rompe todos os vínculos no banco de dados e é totalmente irreversível. Tem certeza que deseja prosseguir com a exclusão?
+            </p>
+            
+            <div className="flex gap-4">
+              <button 
+                onClick={() => setTherapistToDelete(null)}
+                className="flex-1 py-3 bg-white/5 hover:bg-white/10 text-white font-medium rounded-xl transition-colors"
+              >
+                Cancelar 
+              </button>
+              <button 
+                onClick={handleDelete}
+                className="flex-1 py-3 bg-red-600 hover:bg-red-500 text-white font-medium rounded-xl transition-colors shadow-[0_0_15px_rgba(239,68,68,0.3)]"
+              >
+                Sim, Excluir Terapeuta
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

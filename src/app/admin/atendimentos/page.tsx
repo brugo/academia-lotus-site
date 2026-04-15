@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { Plus, Edit2, CheckCircle2, Component } from "lucide-react";
+import { Plus, Edit2, CheckCircle2, Component, GripVertical } from "lucide-react";
 import type { DatabaseService, DatabaseTherapist } from "@/lib/types";
 
 // Helper de slug
@@ -26,8 +26,10 @@ export default function ServicesAdminPage() {
   // Estado para os benefícios, digitados como vírgulas
   const [benefitsInput, setBenefitsInput] = useState("");
   
+  const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
+  
   const [formData, setFormData] = useState<Partial<DatabaseService>>({
-    title: "", description: "", short_subtitle: "", duration: "1h", icon: "Star", is_active: true, benefits: []
+    title: "", description: "", short_subtitle: "", duration: "1h", icon: "Star", is_active: true, benefits: [], order_index: 0, is_featured: false
   });
 
   // Estado temporário na tela de Serviços para quais Terapeutas foram marcados
@@ -40,7 +42,7 @@ export default function ServicesAdminPage() {
   const fetchData = async () => {
     setLoading(true);
     const [sRes, tRes] = await Promise.all([
-      supabase.from("services").select("*").order("created_at", { ascending: false }),
+      supabase.from("services").select("*").order("order_index", { ascending: true }),
       supabase.from("therapists").select("*").order("name", { ascending: true })
     ]);
     
@@ -48,6 +50,28 @@ export default function ServicesAdminPage() {
     if (tRes.data) setTherapists(tRes.data as DatabaseTherapist[]);
     
     setLoading(false);
+  };
+
+  const handleDragStart = (index: number) => setDraggedIdx(index);
+
+  const handleDragEnter = (targetIndex: number) => {
+    if (draggedIdx === null || draggedIdx === targetIndex) return;
+    const newItems = [...services];
+    const draggedItem = newItems[draggedIdx];
+    newItems.splice(draggedIdx, 1);
+    newItems.splice(targetIndex, 0, draggedItem);
+    
+    const reindexedItems = newItems.map((item, idx) => ({...item, order_index: idx}));
+    setDraggedIdx(targetIndex);
+    setServices(reindexedItems);
+  };
+
+  const handleDragEnd = async () => {
+    setDraggedIdx(null);
+    const promises = services.map((s, idx) => 
+      supabase.from("services").update({ order_index: idx }).eq("id", s.id)
+    );
+    await Promise.all(promises);
   };
 
   const handleSave = async () => {
@@ -98,10 +122,16 @@ export default function ServicesAdminPage() {
     
     setShowAddForm(false);
     setIsEditing(null);
-    setFormData({ title: "", description: "", short_subtitle: "", duration: "1h", icon: "Star", is_active: true, benefits: [] });
+    setFormData({ title: "", description: "", short_subtitle: "", duration: "1h", icon: "Star", is_active: true, benefits: [], order_index: 0, is_featured: false });
     setBenefitsInput("");
     setSelectedTherapistIds([]);
     fetchData();
+  };
+
+  const toggleFeatured = async (s: DatabaseService) => {
+    const newState = !s.is_featured;
+    setServices((prev) => prev.map(item => item.id === s.id ? { ...item, is_featured: newState } : item));
+    await supabase.from("services").update({ is_featured: newState }).eq("id", s.id);
   };
 
   const editService = (s: DatabaseService) => {
@@ -119,7 +149,7 @@ export default function ServicesAdminPage() {
   };
 
   const startNewService = () => {
-    setFormData({ title: "", description: "", short_subtitle: "", duration: "1h", icon: "Star", is_active: true, benefits: [] });
+    setFormData({ title: "", description: "", short_subtitle: "", duration: "1h", icon: "Star", is_active: true, benefits: [], order_index: 0, is_featured: false });
     setBenefitsInput("");
     setIsEditing(null);
     setSelectedTherapistIds([]);
@@ -210,9 +240,16 @@ export default function ServicesAdminPage() {
               </div>
             )}
             
-            <div className="flex items-center gap-3 md:col-span-2 mt-2">
-              <input type="checkbox" checked={formData.is_active} onChange={e => setFormData({...formData, is_active: e.target.checked})} className="w-5 h-5 accent-gold-500 bg-midnight-950 rounded cursor-pointer" id="activeServiceToggle" />
-              <label htmlFor="activeServiceToggle" className="text-sm text-slate-300 cursor-pointer">Técnica Ativa (Apapece no site)</label>
+            <div className="flex items-center gap-6 md:col-span-2 mt-2 bg-midnight-950 p-4 rounded-xl border border-white/5">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" checked={formData.is_active} onChange={e => setFormData({...formData, is_active: e.target.checked})} className="w-5 h-5 accent-gold-500 bg-midnight-950 rounded cursor-pointer" />
+                <span className="text-sm text-slate-300">Técnica Ativa (Exibir no site)</span>
+              </label>
+
+              <label className="flex items-center gap-3 cursor-pointer border-l border-white/10 pl-6">
+                <input type="checkbox" checked={formData.is_featured} onChange={e => setFormData({...formData, is_featured: e.target.checked})} className="w-5 h-5 accent-gold-500 bg-midnight-950 rounded cursor-pointer" />
+                <span className="text-sm text-gold-400 font-medium">Tamanho Grande (G)</span>
+              </label>
             </div>
           </div>
 
@@ -233,21 +270,34 @@ export default function ServicesAdminPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4">
-          {services.map((s) => {
+          {services.map((s, index) => {
              // Contar quantos terapeutas fazem isso
              const profCount = therapists.filter(t => t.supported_services?.includes(s.slug)).length;
              
              return (
-              <div key={s.id} className={`p-5 rounded-2xl border transition-all flex flex-col sm:flex-row gap-5 relative group ${s.is_active ? 'bg-white/5 border-white/10 hover:border-gold-500/30' : 'bg-black/20 border-white/5 opacity-50'}`}>
+              <div 
+                key={s.id} 
+                draggable
+                onDragStart={() => handleDragStart(index)}
+                onDragEnter={() => handleDragEnter(index)}
+                onDragEnd={handleDragEnd}
+                onDragOver={(e) => e.preventDefault()}
+                className={`p-5 rounded-2xl border transition-all flex flex-col sm:flex-row gap-5 relative group cursor-grab active:cursor-grabbing ${draggedIdx === index ? 'opacity-40 border-gold-500 scale-[0.98]' : ''} ${s.is_active ? 'bg-white/5 border-white/10 hover:border-gold-500/30' : 'bg-black/20 border-white/5 opacity-50'}`}
+              >
+                <div className="hidden sm:flex items-center justify-center text-slate-600 px-2 opacity-50 group-hover:opacity-100 transition-opacity">
+                  <GripVertical size={20} />
+                </div>
                 
-                <div className="w-16 h-16 rounded-full bg-midnight-950 border border-white/20 overflow-hidden flex-shrink-0 flex items-center justify-center text-gold-400">
+                <div className="w-16 h-16 rounded-full bg-midnight-950 border border-white/20 overflow-hidden flex-shrink-0 flex items-center justify-center text-gold-400 pointer-events-none">
                   <Component size={24} />
                 </div>
                 
-                <div className="flex-1 flex flex-col justify-center">
+                <div className="flex-1 flex flex-col justify-center pointer-events-none">
                   <h3 className="text-lg font-medium text-white flex items-center gap-2">
+                    <span className="bg-white/10 text-slate-300 text-xs px-2 py-0.5 rounded-md border border-white/5">#{index + 1}</span>
                     {s.title}
                     {s.is_active && <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" title="Ativo" />}
+                    {s.is_featured && <span className="bg-gold-500/20 text-gold-400 text-xs px-2 py-0.5 rounded ml-2 border border-gold-500/20">TAMANHO G</span>}
                   </h3>
                   <p className="text-slate-400 text-sm mt-1">{s.short_subtitle}</p>
                   <div className="flex items-center gap-3 mt-3 text-xs text-slate-500">
@@ -256,12 +306,22 @@ export default function ServicesAdminPage() {
                   </div>
                 </div>
 
-                <button 
-                  onClick={() => editService(s)}
-                  className="sm:absolute sm:top-1/2 sm:-translate-y-1/2 right-6 p-3 bg-white/5 hover:bg-gold-500/20 text-slate-400 hover:text-gold-400 rounded-lg transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 mt-4 sm:mt-0"
-                >
-                  <Edit2 size={18} />
-                </button>
+                <div className="flex items-center gap-2 mt-4 sm:mt-0 sm:absolute sm:top-1/2 sm:-translate-y-1/2 sm:right-6 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                  <button 
+                    onClick={() => toggleFeatured(s)}
+                    className={`px-3 py-2 rounded-lg text-xs font-bold transition-all border ${s.is_featured ? 'bg-gold-500/20 text-gold-400 border-gold-500/30 hover:bg-gold-500/30' : 'bg-white/5 text-slate-400 border-transparent hover:bg-white/10 hover:text-white'}`}
+                    title="Alternar Tamanho no Site"
+                  >
+                    {s.is_featured ? 'Tamanho [G]' : 'Expandir p/ [G]'}
+                  </button>
+
+                  <button 
+                    onClick={() => editService(s)}
+                    className="p-3 bg-white/5 hover:bg-gold-500/20 text-slate-400 hover:text-gold-400 rounded-lg transition-all"
+                  >
+                    <Edit2 size={18} />
+                  </button>
+                </div>
               </div>
             );
           })}
