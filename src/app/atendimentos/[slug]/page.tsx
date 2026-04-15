@@ -1,6 +1,3 @@
-"use client";
-
-import { use } from "react";
 import Link from "next/link";
 import { RevealText } from "@/components/ui/RevealText";
 import { Sparkles, ArrowLeft, Clock, CalendarHeart } from "lucide-react";
