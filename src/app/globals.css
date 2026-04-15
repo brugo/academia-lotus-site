@@ -1,26 +1,88 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
+  --color-midnight-50: #f7f2f8;
+  --color-midnight-100: #ece1ef;
+  --color-midnight-200: #dabcde;
+  --color-midnight-300: #c197cf;
+  --color-midnight-400: #a773b8;
+  --color-midnight-500: #8d52a0;
+  --color-midnight-600: #714180;
+  --color-midnight-700: #563162;
+  --color-midnight-800: #3d2345;
+  --color-midnight-900: #25142a;
+  --color-midnight-950: #170c1a;
+  
+  --color-gold-50: #fefcf5;
+  --color-gold-100: #fdf5e0;
+  --color-gold-200: #fae6b3;
+  --color-gold-300: #f5d17a;
+  --color-gold-400: #f0bc4a;
+  --color-gold-500: #d4af37; 
+  --color-gold-600: #cca024;
+  --color-gold-700: #a47619;
+  
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
+  --font-serif: var(--font-playfair);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  --background: var(--color-midnight-950);
+  --foreground: #f8fafc;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Espaço para a Bottom Tab Bar no mobile */
+@media (max-width: 767px) {
+  body {
+    padding-bottom: 4rem;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Lenis Scroll Base CSS para previnir bugs mecânicos de Scroll em Mobile/Framer Motion */
+html.lenis, html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+/*
+  Fix crítico para mobile: CSS !important sobrescreve os inline styles
+  do Framer Motion que deixam elementos com opacity:0 no mobile real.
+  Isso garante que TODO o conteúdo é visível em telas pequenas.
+*/
+@media (max-width: 767px) {
+  .lotus-parallax {
+    display: none !important;
+  }
+
+  .reveal-text {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
 }

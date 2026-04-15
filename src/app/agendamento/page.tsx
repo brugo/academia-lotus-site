@@ -1,0 +1,36 @@
+export const dynamic = 'force-dynamic';
+
+import { createClient } from "@supabase/supabase-js";
+import { BookingFlow } from "@/components/booking/BookingFlow";
+
+export default async function AgendamentoPage({ searchParams }: { searchParams: Promise<{ servico?: string }> }) {
+  const awaitedParams = await searchParams;
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+  
+  // Buscar terapeutas ativos
+  const { data: therapists } = await supabase
+    .from("therapists")
+    .select("*")
+    .eq("is_active", true);
+
+  return (
+    <main className="min-h-screen pt-24 bg-midnight-950 font-sans text-white selection:bg-gold-500/30 overflow-hidden relative">
+      {/* Glow de fundo luxuoso */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-96 bg-gold-900/10 blur-[120px] rounded-full pointer-events-none -z-10" />
+      
+      <div className="max-w-5xl mx-auto px-4 md:px-8 py-10">
+        <div className="text-center mb-12">
+          <h1 className="font-serif text-4xl md:text-5xl text-white mb-4">Escolha seu caminho</h1>
+          <p className="text-slate-400 font-light max-w-2xl mx-auto">
+            Sua jornada de transformação começa com a escolha de um mestre. Selecione um terapeuta para verificar a disponibilidade.
+          </p>
+        </div>
+
+        <BookingFlow initialTherapists={therapists || []} requestedService={awaitedParams.servico} />
+      </div>
+    </main>
+  );
+}
