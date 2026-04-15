@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+agendamentos-lotus-ae9e7bb16d38.json
+
