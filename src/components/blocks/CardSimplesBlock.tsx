@@ -52,7 +52,7 @@ export function CardSimplesBlock({ block }: { block: PageBlock }) {
                   {/* Background Image with overlay effect */}
                   {item.image_url && (
                     <div className="absolute inset-0 z-0">
-                      <img src={item.image_url} alt="" className="w-full h-full object-cover grayscale mix-blend-overlay opacity-10 group-hover:opacity-20 group-hover:scale-105 transition-all duration-1000" />
+                      <img src={item.image_url} alt="" className="w-full h-full object-cover grayscale mix-blend-overlay opacity-10 group-hover:grayscale-[0.5] group-hover:opacity-[0.22] group-hover:scale-105 transition-all duration-700 ease-out" />
                       <div className="absolute inset-0 bg-gradient-to-t from-midnight-900 via-transparent to-transparent opacity-80" />
                     </div>
                   )}
@@ -95,7 +95,7 @@ export function CardSimplesBlock({ block }: { block: PageBlock }) {
                 {/* Background Image with overlay effect */}
                 {item.image_url && (
                   <div className="absolute inset-0 z-0">
-                    <img src={item.image_url} alt="" className="w-full h-full object-cover grayscale mix-blend-overlay opacity-10 group-hover:opacity-20 group-hover:scale-105 transition-all duration-1000" />
+                    <img src={item.image_url} alt="" className="w-full h-full object-cover grayscale mix-blend-overlay opacity-10 group-hover:grayscale-[0.5] group-hover:opacity-[0.22] group-hover:scale-105 transition-all duration-700 ease-out" />
                     <div className="absolute inset-0 bg-gradient-to-t from-midnight-900 via-transparent to-transparent opacity-80" />
                   </div>
                 )}

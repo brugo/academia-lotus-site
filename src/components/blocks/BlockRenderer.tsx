@@ -3,6 +3,9 @@ import { HeroBlock } from "./HeroBlock";
 import { CardSimplesBlock } from "./CardSimplesBlock";
 import { CtaSectionBlock } from "./CtaSectionBlock";
 import { BannerPromocionalBlock } from "./BannerPromocionalBlock";
+import { CupomBlock } from "./CupomBlock";
+import { VideoBannerBlock } from "./VideoBannerBlock";
+import { ListaTerapeutasBlock } from "./ListaTerapeutasBlock";
 
 // Renderizador principal: Mapeia o tipo de banco de dados para os componentes visuais
 export function BlockRenderer({ blocks }: { blocks: PageBlock[] }) {
@@ -35,6 +38,15 @@ export function BlockRenderer({ blocks }: { blocks: PageBlock[] }) {
           case 'cta_section':
             return <CtaSectionBlock key={block.id} block={block} />;
 
+          case 'cupom':
+            return <CupomBlock key={block.id} block={block} />;
+
+          case 'video_banner':
+            return <VideoBannerBlock key={block.id} block={block} />;
+
+          case 'lista_terapeutas':
+            return <ListaTerapeutasBlock key={block.id} block={block} />;
+
           // Default fallback para blocos que ainda não têm componente visual pronto
           default:
             return (
@@ -53,3 +65,4 @@ export function BlockRenderer({ blocks }: { blocks: PageBlock[] }) {
     </div>
   );
 }
+
