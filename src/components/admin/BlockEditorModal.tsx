@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
-import { X, Save, RefreshCw, Moon, Leaf, Sun, Star, Heart, Flame, Sparkles, Zap, Eye, Shield, Flower2, TreePine, Wind, Droplets, CloudSun, ChevronLeft, ChevronRight, Plus, Trash2, UploadCloud, Image as ImageIcon, Loader2 } from "lucide-react";
-import type { PageBlock, BlockType, CardItem } from "@/lib/types";
+import { X, Save, RefreshCw, Moon, Leaf, Sun, Star, Heart, Flame, Sparkles, Zap, Eye, Shield, Flower2, TreePine, Wind, Droplets, CloudSun, ChevronLeft, ChevronRight, Plus, Trash2, UploadCloud, Image as ImageIcon, Loader2, Users } from "lucide-react";
+import type { PageBlock, BlockType, CardItem, DatabaseTherapist } from "@/lib/types";
 import { BLOCK_TEMPLATES } from "@/lib/types";
 import { ImageUploader } from "./ImageUploader";
 
@@ -319,6 +319,16 @@ export function BlockEditorModal({ isOpen, onClose, onSave, existingBlock, selec
   const [content, setContent] = useState<Record<string, any>>({});
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isActive, setIsActive] = useState(true);
+  const [allTherapists, setAllTherapists] = useState<DatabaseTherapist[]>([]);
+
+  // Fetch therapists when type is lista_terapeutas
+  useEffect(() => {
+    if (type === "lista_terapeutas") {
+      supabase.from("therapists").select("*").eq("is_active", true).order("name").then(({ data }) => {
+        if (data) setAllTherapists(data as DatabaseTherapist[]);
+      });
+    }
+  }, [type]);
 
   // Initialize form when opened
   useEffect(() => {
@@ -451,8 +461,9 @@ export function BlockEditorModal({ isOpen, onClose, onSave, existingBlock, selec
               <h3 className="text-lg font-medium text-slate-200 mb-4 border-b border-white/5 pb-2">Conteúdo</h3>
               
               {Object.keys(content).map((field) => {
-                // Skip items — rendered separately below
                 if (field === 'items') return null;
+                // Skip therapist_ids — rendered as special selector
+                if (field === 'therapist_ids') return null;
                 
                 return (
                   <div key={field} className="space-y-2">
@@ -488,6 +499,68 @@ export function BlockEditorModal({ isOpen, onClose, onSave, existingBlock, selec
                 items={content.items as CardItem[]}
                 onChange={(newItems) => setContent({ ...content, items: newItems })}
               />
+            </div>
+          )}
+
+          {/* ---- Seletor de Terapeutas (lista_terapeutas) ---- */}
+          {type === "lista_terapeutas" && (
+            <div className="border-t border-white/5 pt-6">
+              <h3 className="text-lg font-medium text-slate-200 mb-1 flex items-center gap-2">
+                <Users size={18} className="text-gold-400" />
+                Selecionar Terapeutas
+              </h3>
+              <p className="text-xs text-slate-500 mb-5">Marque quais terapeutas devem aparecer neste bloco. Se nenhum for selecionado, todos os terapeutas ativos serão exibidos.</p>
+              
+              {allTherapists.length === 0 ? (
+                <p className="text-sm text-slate-500 italic">Nenhum terapeuta cadastrado.</p>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {allTherapists.map((t) => {
+                    const selectedIds: string[] = (content.therapist_ids as string[]) || [];
+                    const isChecked = selectedIds.includes(t.id);
+                    return (
+                      <label
+                        key={t.id}
+                        className={`flex items-center gap-3 cursor-pointer p-3 rounded-xl border transition-all ${
+                          isChecked
+                            ? "bg-gold-500/10 border-gold-500/30"
+                            : "bg-midnight-950/40 border-white/5 hover:border-white/15"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            const newIds = e.target.checked
+                              ? [...selectedIds, t.id]
+                              : selectedIds.filter((id) => id !== t.id);
+                            setContent({ ...content, therapist_ids: newIds });
+                          }}
+                          className="w-4 h-4 accent-gold-500 rounded cursor-pointer flex-shrink-0"
+                        />
+                        <div className="flex items-center gap-2 min-w-0">
+                          {t.photo_url ? (
+                            <img src={t.photo_url} alt="" className="w-8 h-8 rounded-full object-cover border border-white/10 flex-shrink-0" />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-midnight-800 flex items-center justify-center text-gold-500/40 flex-shrink-0">
+                              <Users size={14} />
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <p className="text-sm text-slate-200 truncate">{t.name}</p>
+                            <p className="text-[10px] text-slate-500 truncate">{t.specialty}</p>
+                          </div>
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+              {((content.therapist_ids as string[]) || []).length > 0 && (
+                <p className="text-[10px] text-gold-400/70 mt-3">
+                  {((content.therapist_ids as string[]) || []).length} terapeuta(s) selecionado(s)
+                </p>
+              )}
             </div>
           )}
 

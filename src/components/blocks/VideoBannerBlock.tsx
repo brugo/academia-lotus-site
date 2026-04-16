@@ -12,14 +12,24 @@ function getYouTubeId(url: string): string | null {
   return match && match[2].length === 11 ? match[2] : null;
 }
 
+// YouTube thumbnail quality fallback chain
+const THUMB_QUALITIES = ["maxresdefault", "sddefault", "hqdefault", "mqdefault", "default"];
+
 export function VideoBannerBlock({ block }: { block: PageBlock }) {
   const content = (block.content as unknown) as VideoBannerContent;
   const [isPlaying, setIsPlaying] = useState(false);
+  const [thumbIdx, setThumbIdx] = useState(0);
 
   const videoUrl = content.video_url || "";
   const youtubeId = getYouTubeId(videoUrl);
-  const thumbnailUrl = youtubeId ? `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg` : null;
+  const thumbnailUrl = youtubeId ? `https://img.youtube.com/vi/${youtubeId}/${THUMB_QUALITIES[thumbIdx]}.jpg` : null;
   const embedUrl = youtubeId ? `https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0` : videoUrl;
+
+  const handleThumbError = () => {
+    if (thumbIdx < THUMB_QUALITIES.length - 1) {
+      setThumbIdx(thumbIdx + 1);
+    }
+  };
 
   return (
     <>
@@ -61,6 +71,7 @@ export function VideoBannerBlock({ block }: { block: PageBlock }) {
                     <img
                       src={thumbnailUrl}
                       alt={content.title || "Video thumbnail"}
+                      onError={handleThumbError}
                       className="absolute inset-0 w-full h-full object-cover opacity-60 grayscale-[0.3]"
                     />
                   )}
@@ -121,6 +132,7 @@ export function VideoBannerBlock({ block }: { block: PageBlock }) {
                 <img
                   src={thumbnailUrl}
                   alt={content.title || "Video thumbnail"}
+                  onError={handleThumbError}
                   className="absolute inset-0 w-full h-full object-cover opacity-50 grayscale-[0.3]"
                 />
               )}

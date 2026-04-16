@@ -91,6 +91,8 @@ export interface CupomContent {
   coupon_code: string;
   discount: string;
   expiry: string;
+  button_text?: string;
+  button_link?: string;
 }
 
 export interface VideoBannerContent {
@@ -116,7 +118,7 @@ export interface TerapeutaItem {
 export interface ListaTerapeutasContent {
   title: string;
   subtitle: string;
-  items: TerapeutaItem[];
+  therapist_ids: string[];  // IDs of selected therapists from DB
 }
 
 /* ---- Block templates for the admin (default content) ---- */
@@ -167,6 +169,8 @@ export const BLOCK_TEMPLATES: Record<BlockType, { label: string; icon: string; d
       coupon_code: 'LOTUS2026',
       discount: '20% OFF',
       expiry: '2026-12-31',
+      button_text: 'Confira',
+      button_link: '',
     },
   },
   video_banner: {
@@ -194,9 +198,7 @@ export const BLOCK_TEMPLATES: Record<BlockType, { label: string; icon: string; d
     defaultContent: {
       title: 'Nossos Terapeutas',
       subtitle: 'Profissionais dedicados à sua cura',
-      items: [
-        { name: 'Terapeuta', specialty: 'Especialidade', image_url: '', link: '/terapeutas' },
-      ],
+      therapist_ids: [],
     },
   },
 };

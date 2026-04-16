@@ -12,22 +12,42 @@ export function ListaTerapeutasBlock({ block }: { block: PageBlock }) {
   const content = (block.content as unknown) as ListaTerapeutasContent;
   const [therapists, setTherapists] = useState<DatabaseTherapist[]>([]);
 
-  // Fetch real therapists from DB
+  // Fetch therapists filtered by selected IDs
   useEffect(() => {
     async function fetchTherapists() {
       const supabase = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
       );
-      const { data } = await supabase
-        .from("therapists")
-        .select("*")
-        .eq("is_active", true)
-        .limit(6);
-      if (data) setTherapists(data as DatabaseTherapist[]);
+
+      const ids = content.therapist_ids;
+
+      if (ids && ids.length > 0) {
+        // Fetch only selected therapists
+        const { data } = await supabase
+          .from("therapists")
+          .select("*")
+          .in("id", ids)
+          .eq("is_active", true);
+        if (data) {
+          // Preserve the order from therapist_ids
+          const ordered = ids
+            .map(id => (data as DatabaseTherapist[]).find(t => t.id === id))
+            .filter(Boolean) as DatabaseTherapist[];
+          setTherapists(ordered);
+        }
+      } else {
+        // Fallback: show all active therapists (max 6)
+        const { data } = await supabase
+          .from("therapists")
+          .select("*")
+          .eq("is_active", true)
+          .limit(6);
+        if (data) setTherapists(data as DatabaseTherapist[]);
+      }
     }
     fetchTherapists();
-  }, []);
+  }, [content.therapist_ids]);
 
   return (
     <>

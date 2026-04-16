@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { RevealText } from "@/components/ui/RevealText";
-import { Ticket, Copy, Check, Clock, Sparkles } from "lucide-react";
+import { Ticket, Copy, Check, Clock, Sparkles, ExternalLink } from "lucide-react";
 import type { PageBlock, CupomContent } from "@/lib/types";
 
 export function CupomBlock({ block }: { block: PageBlock }) {
@@ -88,6 +88,17 @@ export function CupomBlock({ block }: { block: PageBlock }) {
                   >
                     {copied ? <><Check size={14} /> Copiado!</> : <><Copy size={14} /> Copiar Código</>}
                   </button>
+                  {content.button_link && (
+                    <a
+                      href={content.button_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-medium bg-gold-600 hover:bg-gold-500 text-midnight-950 transition-all duration-300 shadow-[0_0_20px_rgba(212,175,55,0.3)] hover:shadow-[0_0_30px_rgba(212,175,55,0.5)] transform hover:-translate-y-0.5"
+                    >
+                      <ExternalLink size={14} />
+                      {content.button_text || "Confira"}
+                    </a>
+                  )}
                 </div>
               </div>
             </div>
@@ -133,6 +144,17 @@ export function CupomBlock({ block }: { block: PageBlock }) {
               >
                 {copied ? <><Check size={14} /> Copiado!</> : <><Copy size={14} /> Copiar</>}
               </button>
+              {content.button_link && (
+                <a
+                  href={content.button_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-5 py-2 rounded-full text-sm font-medium bg-gold-600 text-midnight-950 transition-all"
+                >
+                  <ExternalLink size={14} />
+                  {content.button_text || "Confira"}
+                </a>
+              )}
             </div>
 
             {content.expiry && (

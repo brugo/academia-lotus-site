@@ -10,6 +10,7 @@ import { BlockEditorModal } from "@/components/admin/BlockEditorModal";
 export default function AdminDashboardPage() {
   const [blocks, setBlocks] = useState<PageBlock[]>([]);
   const [loading, setLoading] = useState(true);
+  const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -37,6 +38,30 @@ export default function AdminDashboardPage() {
     fetchBlocks();
   }, []);
 
+  // Drag and Drop handlers
+  const handleDragStart = (index: number) => setDraggedIdx(index);
+
+  const handleDragEnter = (targetIndex: number) => {
+    if (draggedIdx === null || draggedIdx === targetIndex) return;
+    const newItems = [...blocks];
+    const draggedItem = newItems[draggedIdx];
+    newItems.splice(draggedIdx, 1);
+    newItems.splice(targetIndex, 0, draggedItem);
+
+    const reindexed = newItems.map((item, idx) => ({ ...item, order: idx }));
+    setDraggedIdx(targetIndex);
+    setBlocks(reindexed);
+  };
+
+  const handleDragEnd = async () => {
+    setDraggedIdx(null);
+    // Persist new order to Supabase
+    const promises = blocks.map((b, idx) =>
+      supabase.from("page_blocks").update({ order: idx }).eq("id", b.id)
+    );
+    await Promise.all(promises);
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -45,7 +70,7 @@ export default function AdminDashboardPage() {
             <LayoutTemplate className="text-gold-500" />
             Construtor de Páginas
           </h1>
-          <p className="text-slate-400 mt-2 font-light">Gerencie os blocos que compõem a sua Home Page.</p>
+          <p className="text-slate-400 mt-2 font-light">Gerencie os blocos que compõem a sua Home Page. Arraste para reordenar.</p>
         </div>
 
         <button 
@@ -87,12 +112,23 @@ export default function AdminDashboardPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          {blocks.map((block) => {
+          {blocks.map((block, index) => {
             const template = BLOCK_TEMPLATES[block.type];
             return (
               <div 
-                key={block.id} 
-                className={`bg-midnight-900/60 border ${block.is_active ? 'border-white/10' : 'border-red-500/20 opacity-60'} rounded-2xl p-4 flex items-center justify-between group hover:border-gold-500/30 transition-all`}
+                key={block.id}
+                draggable
+                onDragStart={() => handleDragStart(index)}
+                onDragEnter={() => handleDragEnter(index)}
+                onDragEnd={handleDragEnd}
+                onDragOver={(e) => e.preventDefault()}
+                className={`bg-midnight-900/60 border rounded-2xl p-4 flex items-center justify-between group hover:border-gold-500/30 transition-all ${
+                  draggedIdx === index
+                    ? 'opacity-40 border-gold-500 scale-[0.98]'
+                    : block.is_active
+                      ? 'border-white/10'
+                      : 'border-red-500/20 opacity-60'
+                }`}
               >
                 <div className="flex items-center gap-4">
                   <div className="cursor-grab p-2 text-slate-500 hover:text-slate-300 active:cursor-grabbing">
@@ -152,3 +188,4 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
+
