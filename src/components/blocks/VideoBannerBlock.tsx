@@ -1,19 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { RevealText } from "@/components/ui/RevealText";
 import { Play, X } from "lucide-react";
 import type { PageBlock, VideoBannerContent } from "@/lib/types";
 
 // Extract YouTube video ID from various URL formats
 function getYouTubeId(url: string): string | null {
-  const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
   const match = url.match(regExp);
-  return match && match[2].length === 11 ? match[2] : null;
+  return (match && match[7].length === 11) ? match[7] : null;
 }
 
-// YouTube thumbnail quality fallback chain
-const THUMB_QUALITIES = ["maxresdefault", "sddefault", "hqdefault", "mqdefault", "default"];
+// YouTube thumbnail quality fallback chain - starting with hqdefault for better reliability
+// maxresdefault often returns a "placeholder" image (status 200) instead of a 404, 
+// which breaks the onError fallback logic. hqdefault is guaranteed to exist.
+const THUMB_QUALITIES = ["hqdefault", "mqdefault", "sddefault", "maxresdefault", "default"];
 
 export function VideoBannerBlock({ block }: { block: PageBlock }) {
   const content = (block.content as unknown) as VideoBannerContent;
@@ -24,6 +26,11 @@ export function VideoBannerBlock({ block }: { block: PageBlock }) {
   const youtubeId = getYouTubeId(videoUrl);
   const thumbnailUrl = youtubeId ? `https://img.youtube.com/vi/${youtubeId}/${THUMB_QUALITIES[thumbIdx]}.jpg` : null;
   const embedUrl = youtubeId ? `https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0` : videoUrl;
+
+  // Reset thumbIdx if the video ID changes
+  useEffect(() => {
+    setThumbIdx(0);
+  }, [youtubeId]);
 
   const handleThumbError = () => {
     if (thumbIdx < THUMB_QUALITIES.length - 1) {

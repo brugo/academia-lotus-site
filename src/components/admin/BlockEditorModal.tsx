@@ -335,7 +335,8 @@ export function BlockEditorModal({ isOpen, onClose, onSave, existingBlock, selec
     if (isOpen) {
       if (existingBlock) {
         setType(existingBlock.type);
-        setContent(existingBlock.content || {});
+        const templateDefaults = BLOCK_TEMPLATES[existingBlock.type]?.defaultContent || {};
+        setContent({ ...templateDefaults, ...(existingBlock.content as Record<string, any> || {}) });
         setImageUrl(existingBlock.image_url);
         setIsActive(existingBlock.is_active);
       } else {
