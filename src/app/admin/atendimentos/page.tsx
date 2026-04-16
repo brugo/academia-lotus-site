@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { Plus, Edit2, CheckCircle2, Component, GripVertical } from "lucide-react";
+import { Plus, Edit2, CheckCircle2, Component, GripVertical, Upload, ImageIcon, X } from "lucide-react";
 import type { DatabaseService, DatabaseTherapist } from "@/lib/types";
 
 // Helper de slug
@@ -27,9 +27,10 @@ export default function ServicesAdminPage() {
   const [benefitsInput, setBenefitsInput] = useState("");
   
   const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
+  const [uploading, setUploading] = useState(false);
   
   const [formData, setFormData] = useState<Partial<DatabaseService>>({
-    title: "", description: "", short_subtitle: "", duration: "1h", icon: "Star", is_active: true, benefits: [], order_index: 0, is_featured: false
+    title: "", description: "", short_subtitle: "", duration: "1h", icon: "Star", image_url: "", is_active: true, benefits: [], order_index: 0, is_featured: false
   });
 
   // Estado temporário na tela de Serviços para quais Terapeutas foram marcados
@@ -122,7 +123,7 @@ export default function ServicesAdminPage() {
     
     setShowAddForm(false);
     setIsEditing(null);
-    setFormData({ title: "", description: "", short_subtitle: "", duration: "1h", icon: "Star", is_active: true, benefits: [], order_index: 0, is_featured: false });
+    setFormData({ title: "", description: "", short_subtitle: "", duration: "1h", icon: "Star", image_url: "", is_active: true, benefits: [], order_index: 0, is_featured: false });
     setBenefitsInput("");
     setSelectedTherapistIds([]);
     fetchData();
@@ -148,8 +149,34 @@ export default function ServicesAdminPage() {
     setShowAddForm(true);
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setUploading(true);
+    const fileExt = file.name.split('.').pop();
+    const fileName = `service-${Date.now()}.${fileExt}`;
+    const filePath = `services/${fileName}`;
+    
+    const { error } = await supabase.storage.from('images').upload(filePath, file, { upsert: true });
+    
+    if (error) {
+      alert(`Erro no upload: ${error.message}`);
+      setUploading(false);
+      return;
+    }
+    
+    const { data: urlData } = supabase.storage.from('images').getPublicUrl(filePath);
+    setFormData({ ...formData, image_url: urlData.publicUrl });
+    setUploading(false);
+  };
+
+  const handleImageRemove = () => {
+    setFormData({ ...formData, image_url: "" });
+  };
+
   const startNewService = () => {
-    setFormData({ title: "", description: "", short_subtitle: "", duration: "1h", icon: "Star", is_active: true, benefits: [], order_index: 0, is_featured: false });
+    setFormData({ title: "", description: "", short_subtitle: "", duration: "1h", icon: "Star", image_url: "", is_active: true, benefits: [], order_index: 0, is_featured: false });
     setBenefitsInput("");
     setIsEditing(null);
     setSelectedTherapistIds([]);
@@ -206,7 +233,45 @@ export default function ServicesAdminPage() {
               <p className="text-xs text-slate-500 mt-1">Ex: Star, Moon, Sun, Compass, Brain, Eye</p>
             </div>
 
-            <div className="space-y-2 md:col-span-2">
+            <div className="space-y-2 md:col-span-2 border-t border-white/10 pt-6 mt-2">
+              <label className="text-sm font-medium text-slate-300 flex items-center justify-between">
+                <span className="flex items-center gap-2"><ImageIcon size={16} /> Imagem de Capa</span>
+                {formData.image_url && <span className="text-emerald-400 text-xs">✓ Imagem Anexada</span>}
+              </label>
+              
+              {formData.image_url ? (
+                <div className="relative group rounded-xl overflow-hidden border border-white/10 w-full h-48">
+                  <img src={formData.image_url} alt="Preview" className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                    <label className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg cursor-pointer transition-colors flex items-center gap-2 text-sm">
+                      <Upload size={16} /> Trocar
+                      <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                    </label>
+                    <button onClick={handleImageRemove} className="px-4 py-2 bg-red-500/20 hover:bg-red-500/40 text-red-300 rounded-lg transition-colors flex items-center gap-2 text-sm">
+                      <X size={16} /> Remover
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <label className={`flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-xl cursor-pointer transition-all ${uploading ? 'border-gold-500/50 bg-gold-500/5' : 'border-white/10 hover:border-gold-500/30 hover:bg-white/5'}`}>
+                  {uploading ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-8 h-8 border-2 border-gold-500 border-t-transparent rounded-full animate-spin" />
+                      <span className="text-sm text-gold-400">Enviando imagem...</span>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2 text-slate-400">
+                      <Upload size={32} className="opacity-40" />
+                      <span className="text-sm">Clique para enviar uma imagem</span>
+                      <span className="text-xs text-slate-600">PNG, JPG ou WebP</span>
+                    </div>
+                  )}
+                  <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" disabled={uploading} />
+                </label>
+              )}
+            </div>
+
+            <div className="space-y-2 md:col-span-2 mt-4">
               <label className="text-sm font-medium text-slate-300">Lista de Benefícios (separados por vírgula)</label>
               <textarea value={benefitsInput} onChange={e => setBenefitsInput(e.target.value)} className="w-full bg-midnight-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-gold-500 transition-colors min-h-[80px]" placeholder="Ex: Limpeza de karmas e bloqueios, Abertura de caminhos, Equilíbrio de Chakras..." />
             </div>

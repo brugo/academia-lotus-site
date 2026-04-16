@@ -33,6 +33,7 @@ export interface DatabaseService {
   duration: string;
   benefits: string[];
   icon: string;
+  image_url?: string;
   is_active: boolean;
   is_featured: boolean;
   order_index: number;
@@ -67,6 +68,8 @@ export interface CardItem {
   icon: string;   // lucide icon name
   title: string;
   description: string;
+  link: string;   // destination page path e.g. "/atendimentos"
+  image_url?: string; // optional background image
 }
 
 export interface CardSimplesContent {
@@ -139,9 +142,9 @@ export const BLOCK_TEMPLATES: Record<BlockType, { label: string; icon: string; d
       title: 'Nossos Pilares',
       subtitle: 'Conheça os caminhos da cura',
       items: [
-        { icon: 'Moon', title: 'Título do Card', description: 'Descrição do serviço ou conteúdo.' },
-        { icon: 'Leaf', title: 'Título do Card', description: 'Descrição do serviço ou conteúdo.' },
-        { icon: 'Sun', title: 'Título do Card', description: 'Descrição do serviço ou conteúdo.' },
+        { icon: 'Moon', title: 'Título do Card', description: 'Descrição do serviço ou conteúdo.', link: '/atendimentos' },
+        { icon: 'Leaf', title: 'Título do Card', description: 'Descrição do serviço ou conteúdo.', link: '/cursos' },
+        { icon: 'Sun', title: 'Título do Card', description: 'Descrição do serviço ou conteúdo.', link: '/terapeutas' },
       ],
     },
   },

@@ -34,7 +34,7 @@ export default async function AtendimentoPage({ params }: { params: Promise<{ sl
   return (
     <div className="min-h-screen bg-midnight-950 selection:bg-gold-500/30 selection:text-white">
       {/* Hero Section */}
-      <div className="relative h-[70vh] flex items-center justify-center overflow-hidden">
+      <div className="relative min-h-[70vh] py-32 flex items-center justify-center overflow-hidden">
         {/* Camadas Mágicas de Fundo */}
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-b from-midnight-950/40 via-midnight-950/60 to-midnight-950 z-10" />
@@ -45,7 +45,7 @@ export default async function AtendimentoPage({ params }: { params: Promise<{ sl
           </div>
         </div>
         
-        <div className="relative z-20 text-center px-6 mt-16 max-w-4xl mx-auto flex flex-col items-center">
+        <div className="relative z-20 text-center px-6 mt-16 max-w-5xl mx-auto flex flex-col items-center pb-20">
           <Link href="/" className="self-start sm:self-center mb-8 inline-flex items-center gap-2 text-slate-400 hover:text-gold-400 transition-colors">
              <ArrowLeft size={16} /> <span className="text-sm tracking-widest uppercase">Voltar ao Início</span>
           </Link>
@@ -54,11 +54,11 @@ export default async function AtendimentoPage({ params }: { params: Promise<{ sl
             <Sparkles size={14} /> Atendimentos Lótus
           </RevealText>
           
-          <RevealText element="h1" delay={0.2} className="font-serif text-5xl md:text-7xl lg:text-8xl text-transparent bg-clip-text bg-gradient-to-r from-white via-gold-100 to-gold-400 mb-6 drop-shadow-sm">
+          <RevealText element="h1" delay={0.2} className="font-serif text-4xl md:text-6xl lg:text-7xl text-transparent bg-clip-text bg-gradient-to-r from-white via-gold-100 to-gold-400 mb-6 drop-shadow-sm leading-tight">
             {data.title}
           </RevealText>
           
-          <RevealText element="p" delay={0.3} className="text-xl md:text-2xl text-gold-200/80 font-light italic mb-12">
+          <RevealText element="p" delay={0.3} className="text-xl md:text-2xl text-gold-200/80 font-light italic">
             {data.short_subtitle}
           </RevealText>
         </div>
@@ -103,6 +103,13 @@ export default async function AtendimentoPage({ params }: { params: Promise<{ sl
                       ))}
                     </ul>
                  </RevealText>
+                 
+                 {data.image_url && (
+                   <RevealText delay={0.8} className="mt-2 w-full h-[300px] md:h-full min-h-[300px] rounded-2xl relative overflow-hidden group shadow-xl ring-1 ring-white/10 hover:ring-gold-500/30 transition-all duration-500">
+                      <div className="absolute inset-0 bg-gold-500/10 mix-blend-overlay z-10 group-hover:opacity-0 transition-opacity duration-500" />
+                      <img src={data.image_url} alt={data.title} className="w-full h-full object-cover group-hover:scale-105 group-hover:rotate-1 transition-transform duration-1000 ease-out" />
+                   </RevealText>
+                 )}
               </div>
             </div>
 

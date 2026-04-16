@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import type { DatabaseTherapist } from "@/lib/types";
+import { GoldenParticles } from "@/components/ui/GoldenParticles";
 
 export const dynamic = "force-dynamic";
 
@@ -22,11 +23,10 @@ export default async function TerapeutasPage() {
 
   return (
     <div className="min-h-screen pt-32 pb-24 relative overflow-hidden">
-      {/* Background elements */}
-      <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-gold-900/10 blur-[120px] rounded-full -z-10" />
-      <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-midnight-800/40 blur-[120px] rounded-full -z-10" />
+      {/* Background animado e fundo paralax novo */}
+      <GoldenParticles />
 
-      <div className="container mx-auto px-6">
+      <div className="container mx-auto px-6 relative z-10">
         <div className="max-w-4xl mx-auto text-center mb-20">
           <RevealText delay={0.1} element="div" className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gold-500/10 border border-gold-500/20 text-gold-400 text-xs font-medium tracking-widest uppercase mb-6">
             Egrégora da Lótus
