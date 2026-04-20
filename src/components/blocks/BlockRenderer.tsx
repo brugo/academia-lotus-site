@@ -3,20 +3,25 @@ import { HeroBlock } from "./HeroBlock";
 import { CardSimplesBlock } from "./CardSimplesBlock";
 import { CtaSectionBlock } from "./CtaSectionBlock";
 import { BannerPromocionalBlock } from "./BannerPromocionalBlock";
+import { DestaqueBlock } from "./DestaqueBlock";
+import { ListaTerapeutasBlock } from "./ListaTerapeutasBlock";
+import { DuploCardBlock } from "./DuploCardBlock";
+import { TextoNarrativaBlock } from "./TextoNarrativaBlock";
 import { CupomBlock } from "./CupomBlock";
 import { VideoBannerBlock } from "./VideoBannerBlock";
-import { ListaTerapeutasBlock } from "./ListaTerapeutasBlock";
+import { PageHeaderBlock } from "./PageHeaderBlock";
 
 // Renderizador principal: Mapeia o tipo de banco de dados para os componentes visuais
-export function BlockRenderer({ blocks }: { blocks: PageBlock[] }) {
+export function BlockRenderer({ blocks, hideEmptyState = false }: { blocks: PageBlock[], hideEmptyState?: boolean }) {
   if (!blocks || blocks.length === 0) {
+    if (hideEmptyState) return null;
     return (
       <div className="min-h-[50vh] flex flex-col items-center justify-center z-10 relative">
         <p className="text-gold-500 font-light text-center mb-4 text-xl">
-          A Home está vazia.
+          Nenhum conteúdo encontrado.
         </p>
         <p className="text-slate-400 font-light text-center">
-          Acesse o painel Administrador para adicionar belos blocos à sua página principal!
+          Acesse o painel Administrador para adicionar belos blocos a esta página!
         </p>
       </div>
     );
@@ -44,8 +49,20 @@ export function BlockRenderer({ blocks }: { blocks: PageBlock[] }) {
           case 'video_banner':
             return <VideoBannerBlock key={block.id} block={block} />;
 
+          case 'destaque':
+            return <DestaqueBlock key={block.id} block={block} />;
+
           case 'lista_terapeutas':
             return <ListaTerapeutasBlock key={block.id} block={block} />;
+
+          case 'texto_narrativa':
+            return <TextoNarrativaBlock key={block.id} block={block} />;
+
+          case 'duplo_card':
+            return <DuploCardBlock key={block.id} block={block} />;
+
+          case 'page_header':
+            return <PageHeaderBlock key={block.id} block={block} />;
 
           // Default fallback para blocos que ainda não têm componente visual pronto
           default:

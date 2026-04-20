@@ -52,7 +52,7 @@ export function ListaTerapeutasBlock({ block }: { block: PageBlock }) {
   return (
     <>
       {/* DESKTOP */}
-      <section className="hidden md:block py-28 relative z-10 bg-midnight-950/80 backdrop-blur-xl border-y border-white/5 w-full">
+      <section className="hidden md:block py-28 relative z-10 bg-midnight-950/80 backdrop-blur-xl w-full">
         <div className="container mx-auto px-6">
           <div className="text-center md:max-w-4xl mx-auto mb-20">
             <RevealText element="div" className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gold-500/10 border border-gold-500/20 text-gold-400 text-xs font-medium tracking-widest uppercase mb-6">
@@ -111,7 +111,7 @@ export function ListaTerapeutasBlock({ block }: { block: PageBlock }) {
       </section>
 
       {/* MOBILE */}
-      <section className="md:hidden py-16 relative z-10 bg-midnight-950/80 border-y border-white/5 w-full">
+      <section className="md:hidden py-16 relative z-10 bg-midnight-950/80 w-full">
         <div className="container mx-auto px-6">
           <div className="text-center mx-auto mb-10">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold-500/10 border border-gold-500/20 text-gold-400 text-[10px] font-medium tracking-widest uppercase mb-4">

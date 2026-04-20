@@ -9,7 +9,11 @@ export type BlockType =
   | 'cupom'
   | 'video_banner'
   | 'cta_section'
-  | 'lista_terapeutas';
+  | 'destaque'
+  | 'lista_terapeutas'
+  | 'duplo_card'
+  | 'texto_narrativa'
+  | 'page_header';
 
 export interface PageBlock {
   id: string;
@@ -121,6 +125,46 @@ export interface ListaTerapeutasContent {
   therapist_ids: string[];  // IDs of selected therapists from DB
 }
 
+export interface DestaqueContent {
+  tag: string;
+  title: string;
+  description: string;
+  show_button1: boolean;
+  button1_text: string;
+  button1_link: string;
+  show_button2: boolean;
+  button2_text: string;
+  button2_link: string;
+}
+
+export interface DuploCardItem {
+  image_url: string | null;
+  title: string;
+  description: string;
+  button_text: string;
+  button_link: string;
+}
+
+export interface DuploCardContent {
+  card1: DuploCardItem;
+  card2: DuploCardItem;
+}
+
+export interface TextoNarrativaContent {
+  pre_title: string;
+  title: string;
+  body: string;
+}
+
+export interface PageHeaderContent {
+  badge: string;
+  title1: string;
+  title2: string;
+  description: string;
+  padding_top: string;
+  padding_bottom: string;
+}
+
 /* ---- Block templates for the admin (default content) ---- */
 
 export const BLOCK_TEMPLATES: Record<BlockType, { label: string; icon: string; defaultContent: Record<string, unknown> }> = {
@@ -160,6 +204,21 @@ export const BLOCK_TEMPLATES: Record<BlockType, { label: string; icon: string; d
       button_link: '/atendimentos',
     },
   },
+  destaque: {
+    label: 'Destaque (Livro/Curso)',
+    icon: 'BookOpen',
+    defaultContent: {
+      tag: 'Lançamento Oficial',
+      title: 'A Jornada Kármica da Alma',
+      description: '"A Jornada Kármica da Alma" desvenda o esplendor e a profundidade da jornada espiritual da alma através das vastidões do cosmos e das múltiplas vidas.',
+      show_button1: true,
+      button1_text: 'Adquirir Livro',
+      button1_link: '/cursos',
+      show_button2: true,
+      button2_text: 'Ler Primeiro Capítulo',
+      button2_link: '/cursos',
+    },
+  },
   cupom: {
     label: 'Painel de Cupom',
     icon: 'Ticket',
@@ -196,9 +255,53 @@ export const BLOCK_TEMPLATES: Record<BlockType, { label: string; icon: string; d
     label: 'Lista de Terapeutas',
     icon: 'Users',
     defaultContent: {
+      page: 'home',
       title: 'Nossos Terapeutas',
       subtitle: 'Profissionais dedicados à sua cura',
       therapist_ids: [],
     },
   },
+  duplo_card: {
+    label: 'Duplo Card',
+    icon: 'Columns2',
+    defaultContent: {
+      page: 'cursos',
+      card1: {
+        image_url: null,
+        title: 'Mesa Radiônica de Lótus',
+        description: 'A formação completa para você se tornar um facilitador desta egrégora.',
+        button_text: 'Ver Ementa',
+        button_link: '/cursos',
+      },
+      card2: {
+        image_url: null,
+        title: 'Saberes da Terra',
+        description: 'Cursos de Fitoterapia e Ervas Guiadas para a limpeza espiritual.',
+        button_text: 'Explorar Saberes',
+        button_link: '/cursos',
+      }
+    }
+  },
+  texto_narrativa: {
+    label: 'Texto Narrativa',
+    icon: 'AlignLeft',
+    defaultContent: {
+      page: 'cursos',
+      pre_title: 'Expansão da Consciência',
+      title: 'Cursos & Livros',
+      body: 'Adentre o conhecimento profundo dos mistérios cósmicos. Formações canalizadas para despertar o mestre que habita em você.',
+    }
+  },
+  page_header: {
+    label: 'Cabeçalho da Página',
+    icon: 'Heading',
+    defaultContent: {
+      badge: 'Caminho do Despertar',
+      title1: 'Nossos',
+      title2: 'Cursos',
+      description: 'Aprofunde seu contato com as forças universais através de nossos conhecimentos guiados. Uma jornada real de transformação.',
+      padding_top: 'large',
+      padding_bottom: 'medium',
+    }
+  }
 };

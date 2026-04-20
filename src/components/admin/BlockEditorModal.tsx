@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
-import { X, Save, RefreshCw, Moon, Leaf, Sun, Star, Heart, Flame, Sparkles, Zap, Eye, Shield, Flower2, TreePine, Wind, Droplets, CloudSun, ChevronLeft, ChevronRight, Plus, Trash2, UploadCloud, Image as ImageIcon, Loader2, Users } from "lucide-react";
+import { X, Save, RefreshCw, Moon, Leaf, Sun, Star, Heart, Flame, Sparkles, Zap, Eye, Shield, Flower2, TreePine, Wind, Droplets, CloudSun, ChevronLeft, ChevronRight, Plus, Trash2, UploadCloud, Image as ImageIcon, Loader2, Users, Columns2 } from "lucide-react";
 import type { PageBlock, BlockType, CardItem, DatabaseTherapist } from "@/lib/types";
 import { BLOCK_TEMPLATES } from "@/lib/types";
 import { ImageUploader } from "./ImageUploader";
@@ -309,9 +309,10 @@ interface BlockEditorModalProps {
   onSave: () => void;
   existingBlock: PageBlock | null;
   selectedType?: BlockType;
+  pageRoute?: string;
 }
 
-export function BlockEditorModal({ isOpen, onClose, onSave, existingBlock, selectedType }: BlockEditorModalProps) {
+export function BlockEditorModal({ isOpen, onClose, onSave, existingBlock, selectedType, pageRoute = "home" }: BlockEditorModalProps) {
   const [loading, setLoading] = useState(false);
   
   // Form State
@@ -342,12 +343,15 @@ export function BlockEditorModal({ isOpen, onClose, onSave, existingBlock, selec
       } else {
         const newType = selectedType || "hero";
         setType(newType);
-        setContent(BLOCK_TEMPLATES[newType].defaultContent);
+        setContent({
+          ...BLOCK_TEMPLATES[newType].defaultContent,
+          page: pageRoute
+        });
         setImageUrl(null);
         setIsActive(true);
       }
     }
-  }, [isOpen, existingBlock, selectedType]);
+  }, [isOpen, existingBlock, selectedType, pageRoute]);
 
   const handleSave = async () => {
     setLoading(true);
@@ -425,7 +429,10 @@ export function BlockEditorModal({ isOpen, onClose, onSave, existingBlock, selec
                     onChange={(e) => {
                       const newType = e.target.value as BlockType;
                       setType(newType);
-                      setContent(BLOCK_TEMPLATES[newType].defaultContent);
+                      setContent({
+                        ...BLOCK_TEMPLATES[newType].defaultContent,
+                        page: pageRoute
+                      });
                     }}
                     className="w-full bg-midnight-950/50 border border-white/10 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-gold-500/50"
                   >
@@ -463,13 +470,58 @@ export function BlockEditorModal({ isOpen, onClose, onSave, existingBlock, selec
               
               {Object.keys(content).map((field) => {
                 if (field === 'items') return null;
-                // Skip therapist_ids — rendered as special selector
+                // Skip therapist_ids, and card1/card2 (handled separately)
                 if (field === 'therapist_ids') return null;
+                if (field === 'card1' || field === 'card2') return null;
                 
+                if (typeof content[field] === 'boolean') {
+                  return (
+                    <div key={field} className="space-y-2 mt-4">
+                      <label className="flex items-center gap-3 cursor-pointer group">
+                        <div className={`w-10 h-5 rounded-full transition-colors relative ${content[field] ? 'bg-gold-500' : 'bg-midnight-700'}`}>
+                          <div className={`absolute top-1 left-1 w-3 h-3 rounded-full bg-white transition-transform ${content[field] ? 'translate-x-5' : ''}`} />
+                        </div>
+                        <input 
+                          type="checkbox" 
+                          className="hidden" 
+                          checked={content[field] as boolean} 
+                          onChange={(e) => setContent({ ...content, [field]: e.target.checked })} 
+                        />
+                        <span className="text-sm font-medium text-slate-300 group-hover:text-white transition-colors">
+                          {field.replace(/_/g, ' ')}
+                        </span>
+                      </label>
+                    </div>
+                  );
+                }
+
+                if (field === 'padding_top' || field === 'padding_bottom') {
+                  const label = field === 'padding_top' ? 'Espaçamento Superior (Topo)' : 'Espaçamento Inferior (Abaixo)';
+                  return (
+                    <div key={field} className="space-y-2">
+                      <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">
+                        {label}
+                      </label>
+                      <select
+                        value={(content[field] as string) || (field === 'padding_top' ? 'large' : 'medium')}
+                        onChange={(e) => setContent({ ...content, [field]: e.target.value })}
+                        className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50 appearance-none cursor-pointer"
+                      >
+                        <option value="none">Nenhum (Colado)</option>
+                        <option value="small">Pequeno</option>
+                        <option value="medium">Médio (Padrão baixo)</option>
+                        <option value="large">Grande (Padrão alto)</option>
+                        <option value="xl">Muito Grande</option>
+                      </select>
+                      <p className="text-[10px] text-slate-500">Controla a distância do componente com o {field === 'padding_top' ? 'topo do site/menu' : 'conteúdo logo abaixo dele'}</p>
+                    </div>
+                  );
+                }
+
                 return (
                   <div key={field} className="space-y-2">
                     <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">
-                      {field.replace('_', ' ')}
+                      {field.replace(/_/g, ' ')}
                     </label>
                     {field.includes('description') || field.includes('subtitle') ? (
                       <textarea
@@ -562,6 +614,78 @@ export function BlockEditorModal({ isOpen, onClose, onSave, existingBlock, selec
                   {((content.therapist_ids as string[]) || []).length} terapeuta(s) selecionado(s)
                 </p>
               )}
+            </div>
+          )}
+
+          {/* ---- Editor para Duplo Card (card1 e card2) ---- */}
+          {type === "duplo_card" && (
+            <div className="border-t border-white/5 pt-6 space-y-8">
+              {[1, 2].map((num) => {
+                const cardKey = `card${num}` as keyof typeof content;
+                const cardData = (content[cardKey] as unknown) as Record<string, any>;
+                if (!cardData) return null;
+
+                return (
+                  <div key={cardKey} className="space-y-4">
+                    <h3 className="text-lg font-medium text-slate-200 mb-2 flex items-center gap-2">
+                      <Columns2 size={18} className="text-gold-400" />
+                      Card {num}
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 gap-4 bg-midnight-950/40 p-5 rounded-2xl border border-white/5">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Image URL (Opcional)</label>
+                        <input
+                          type="text"
+                          value={cardData.image_url || ''}
+                          onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, image_url: e.target.value }})}
+                          className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Título</label>
+                        <input
+                          type="text"
+                          value={cardData.title || ''}
+                          onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, title: e.target.value }})}
+                          className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Descrição</label>
+                        <textarea
+                          value={cardData.description || ''}
+                          onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, description: e.target.value }})}
+                          className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50 min-h-[80px]"
+                        />
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Texto do Botão</label>
+                          <input
+                            type="text"
+                            value={cardData.button_text || ''}
+                            onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, button_text: e.target.value }})}
+                            className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Link do Botão</label>
+                          <input
+                            type="text"
+                            value={cardData.button_link || ''}
+                            onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, button_link: e.target.value }})}
+                            className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
 

@@ -2,8 +2,9 @@ import { RevealText } from "@/components/ui/RevealText";
 import { Sparkles, Star, Compass, Eye, Brain, Sun, Moon, Component as FallbackIcon } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
-import type { DatabaseService } from "@/lib/types";
+import type { DatabaseService, PageBlock } from "@/lib/types";
 import { GoldenParticles } from "@/components/ui/GoldenParticles";
+import { BlockRenderer } from "@/components/blocks/BlockRenderer";
 
 // Helper de mapeamento de ícones do DB
 const iconMap: Record<string, any> = {
@@ -25,23 +26,25 @@ export default async function AtendimentosPage() {
     .order("order_index", { ascending: true });
     
   const services = (servicesData as DatabaseService[]) || [];
+
+  const { data: pageBlocksData } = await supabase
+    .from('page_blocks')
+    .select('*')
+    .eq('is_active', true)
+    .order('order', { ascending: true });
+
+  const pageBlocks = (pageBlocksData || []).filter(b => b.content?.page === 'atendimentos');
+
   return (
     <div className="min-h-screen pt-32 pb-24 relative overflow-hidden">
       {/* Background animado e fundo paralax novo */}
       <GoldenParticles />
 
-      <div className="container mx-auto px-6 relative z-10">
-        <div className="max-w-4xl mx-auto text-center mb-24">
-          <RevealText delay={0.1} element="div" className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gold-500/10 border border-gold-500/20 text-gold-400 text-xs font-medium tracking-widest uppercase mb-6">
-            Jornadas de Transmutação
-          </RevealText>
-          <RevealText delay={0.2} element="h1" className="font-serif text-5xl md:text-7xl text-white mb-6">
-            Nossos <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold-300 via-gold-400 to-gold-600 italic px-2">Atendimentos</span>
-          </RevealText>
-          <RevealText delay={0.3} element="p" className="text-lg text-slate-400 font-light leading-relaxed max-w-2xl mx-auto">
-            Terapias milenares e frequências canalizadas para realinhar seu propósito, remover traumas e abrir caminhos de prosperidade.
-          </RevealText>
-        </div>
+      <div className="relative z-10 w-full mb-12">
+        <BlockRenderer blocks={pageBlocks as PageBlock[]} hideEmptyState={true} />
+      </div>
+
+      <div className="container mx-auto px-6 relative z-20">
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
           {services.map((service, index) => {

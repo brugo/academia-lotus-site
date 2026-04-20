@@ -19,7 +19,8 @@ export default function Home() {
         .order('order', { ascending: true });
         
       if (!error && data) {
-        setBlocks(data);
+        const homeBlocks = data.filter(b => !b.content?.page || b.content.page === 'home');
+        setBlocks(homeBlocks);
       } else {
         setBlocks([]);
       }

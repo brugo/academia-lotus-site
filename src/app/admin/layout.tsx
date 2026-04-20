@@ -43,7 +43,19 @@ export default function AdminLayout({
               }`}
             >
               <LayoutDashboard size={18} />
-              Dashboard
+              Editor Home Page
+            </Link>
+
+            <Link 
+              href="/admin/cursos" 
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all ${
+                pathname === "/admin/cursos" 
+                  ? "bg-gold-500/10 text-gold-400 font-medium border border-gold-500/20" 
+                  : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
+              }`}
+            >
+              <Component size={18} />
+              Editor Cursos
             </Link>
             
             <Link 

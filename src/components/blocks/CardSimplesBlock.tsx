@@ -33,7 +33,7 @@ export function CardSimplesBlock({ block }: { block: PageBlock }) {
   return (
     <>
       {/* DESKTOP */}
-      <section className="hidden md:block py-32 relative z-10 bg-midnight-950/80 backdrop-blur-xl border-y border-white/5 w-full">
+      <section className="hidden md:block py-32 relative z-10 bg-midnight-950/80 backdrop-blur-xl w-full">
         <div className="container mx-auto px-6">
           <div className="text-center md:max-w-4xl mx-auto mb-24">
             <RevealText element="h2" className="font-serif text-3xl md:text-5xl text-gold-400 mb-8">
@@ -79,7 +79,7 @@ export function CardSimplesBlock({ block }: { block: PageBlock }) {
       </section>
 
       {/* MOBILE (HTML PURO) */}
-      <section className="md:hidden py-16 relative z-10 bg-midnight-950/80 border-y border-white/5 w-full">
+      <section className="md:hidden py-16 relative z-10 bg-midnight-950/80 w-full">
         <div className="container mx-auto px-6">
           <div className="text-center mx-auto mb-12">
             <h2 className="font-serif text-3xl text-gold-400 mb-6">{content.title}</h2>
