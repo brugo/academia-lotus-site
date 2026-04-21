@@ -149,6 +149,12 @@ export interface DuploCardItem {
   description: string;
   button_text: string;
   button_link: string;
+  action_type?: 'link' | 'lightbox';
+  lightbox_type?: 'text' | 'image_text' | 'video';
+  lightbox_title?: string;
+  lightbox_text?: string;
+  lightbox_image_url?: string;
+  lightbox_video_url?: string;
 }
 
 export interface DuploCardContent {
@@ -284,6 +290,12 @@ export const BLOCK_TEMPLATES: Record<BlockType, { label: string; icon: string; d
         description: 'A formação completa para você se tornar um facilitador desta egrégora.',
         button_text: 'Ver Ementa',
         button_link: '/cursos',
+        action_type: 'link',
+        lightbox_type: 'text',
+        lightbox_title: 'Mesa Radiônica de Lótus',
+        lightbox_text: 'Detalhes da ementa deste curso maravilhoso.',
+        lightbox_image_url: '',
+        lightbox_video_url: '',
       },
       card2: {
         image_url: null,
@@ -291,6 +303,12 @@ export const BLOCK_TEMPLATES: Record<BlockType, { label: string; icon: string; d
         description: 'Cursos de Fitoterapia e Ervas Guiadas para a limpeza espiritual.',
         button_text: 'Explorar Saberes',
         button_link: '/cursos',
+        action_type: 'link',
+        lightbox_type: 'text',
+        lightbox_title: 'Saberes da Terra',
+        lightbox_text: 'Detalhes da ementa deste curso focada nas ervas e no natural.',
+        lightbox_image_url: '',
+        lightbox_video_url: '',
       }
     }
   },

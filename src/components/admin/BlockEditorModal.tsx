@@ -696,13 +696,11 @@ export function BlockEditorModal({ isOpen, onClose, onSave, existingBlock, selec
                     </h3>
                     
                     <div className="grid grid-cols-1 gap-4 bg-midnight-950/40 p-5 rounded-2xl border border-white/5">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Image URL (Opcional)</label>
-                        <input
-                          type="text"
-                          value={cardData.image_url || ''}
-                          onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, image_url: e.target.value }})}
-                          className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50"
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Capa do Card</label>
+                        <ImageUploader 
+                          currentImageUrl={cardData.image_url || null} 
+                          onImageUploaded={(url) => setContent({ ...content, [cardKey]: { ...cardData, image_url: url }})} 
                         />
                       </div>
                       
@@ -724,27 +722,103 @@ export function BlockEditorModal({ isOpen, onClose, onSave, existingBlock, selec
                           className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50 min-h-[80px]"
                         />
                       </div>
-                      
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Texto do Botão</label>
-                          <input
-                            type="text"
-                            value={cardData.button_text || ''}
-                            onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, button_text: e.target.value }})}
-                            className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Link do Botão</label>
-                          <input
-                            type="text"
-                            value={cardData.button_link || ''}
-                            onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, button_link: e.target.value }})}
-                            className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50"
-                          />
-                        </div>
+
+                      <div className="space-y-2 mt-4 border-t border-white/5 pt-4">
+                        <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">
+                          Ação ao clicar no card
+                        </label>
+                        <select
+                          value={cardData.action_type || 'link'}
+                          onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, action_type: e.target.value }})}
+                          className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50 appearance-none cursor-pointer"
+                        >
+                          <option value="link">Redirecionar para um Link</option>
+                          <option value="lightbox">Abrir Lightbox (Popup na tela)</option>
+                        </select>
                       </div>
+
+                      {(!cardData.action_type || cardData.action_type === 'link') ? (
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Texto do Botão (Opcional)</label>
+                            <input
+                              type="text"
+                              value={cardData.button_text || ''}
+                              onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, button_text: e.target.value }})}
+                              className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Link de Destino</label>
+                            <input
+                              type="text"
+                              value={cardData.button_link || ''}
+                              onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, button_link: e.target.value }})}
+                              className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50"
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-4 bg-black/20 p-4 rounded-xl border border-gold-500/10">
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Tipo de Lightbox</label>
+                            <select
+                              value={cardData.lightbox_type || 'text'}
+                              onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, lightbox_type: e.target.value }})}
+                              className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50 appearance-none cursor-pointer"
+                            >
+                              <option value="text">Apenas Texto</option>
+                              <option value="image_text">Imagem + Texto</option>
+                              <option value="video">Vídeo do YouTube</option>
+                            </select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Título do Lightbox</label>
+                            <input
+                              type="text"
+                              value={cardData.lightbox_title || ''}
+                              onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, lightbox_title: e.target.value }})}
+                              className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50"
+                            />
+                          </div>
+
+                          {cardData.lightbox_type !== 'video' && (
+                            <div className="space-y-2">
+                              <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Texto Informativo</label>
+                              <textarea
+                                value={cardData.lightbox_text || ''}
+                                onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, lightbox_text: e.target.value }})}
+                                className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50 min-h-[100px]"
+                              />
+                            </div>
+                          )}
+
+                          {cardData.lightbox_type === 'image_text' && (
+                            <div className="space-y-3 pt-2">
+                              <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Imagem do Lightbox</label>
+                              <ImageUploader 
+                                currentImageUrl={cardData.lightbox_image_url || null} 
+                                onImageUploaded={(url) => setContent({ ...content, [cardKey]: { ...cardData, lightbox_image_url: url }})} 
+                              />
+                            </div>
+                          )}
+
+                          {cardData.lightbox_type === 'video' && (
+                            <div className="space-y-2 pt-2">
+                              <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Link do YouTube (Embed)</label>
+                              <input
+                                type="text"
+                                value={cardData.lightbox_video_url || ''}
+                                placeholder="Ex: https://www.youtube.com/embed/XXXXX"
+                                onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, lightbox_video_url: e.target.value }})}
+                                className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      )}
+
                     </div>
                   </div>
                 );
