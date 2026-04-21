@@ -200,6 +200,38 @@ export function DestaqueBlock({ block }: { block: PageBlock }) {
                 </div>
               )}
 
+              {/* === NARRATIVA AVANÇADA (CUSTOM BLOCKS) === */}
+              {content.lightbox_type === 'custom_blocks' && (
+                <div className="p-8 md:p-14 relative pb-24">
+                  {content.lightbox_title && (
+                    <h3 className="font-serif text-3xl md:text-4xl text-gold-400 mb-10 border-b border-gold-500/10 pb-6 relative inline-block">
+                      {content.lightbox_title}
+                      <span className="absolute -bottom-[1px] left-0 w-1/3 h-[2px] bg-gold-500"></span>
+                    </h3>
+                  )}
+                  <div className="space-y-10 flex flex-col items-center">
+                    {(content.lightbox_blocks || []).map(block => (
+                      block.type === 'text' ? (
+                        <div key={block.id} className="text-slate-300 font-light leading-relaxed whitespace-pre-wrap text-lg opacity-90 w-full text-justify md:text-left">
+                          {block.content}
+                        </div>
+                      ) : block.content ? (
+                        <div key={block.id} className="w-full max-w-3xl rounded-2xl md:rounded-3xl overflow-hidden border border-white/5 border-gold-500/20 shadow-[0_10px_30px_rgba(0,0,0,0.5)] my-6">
+                          <img 
+                            src={block.content} 
+                            alt="" 
+                            className="w-full h-auto object-cover sepia-[10%] hover:sepia-0 transition-all duration-700 hover:scale-[1.02]" 
+                          />
+                        </div>
+                      ) : null
+                    ))}
+                    {(content.lightbox_blocks || []).length === 0 && (
+                      <p className="text-slate-500 italic font-light">Nenhum conteúdo adicionado nesta narrativa.</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
             </div>
           </div>
         </div>

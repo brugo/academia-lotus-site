@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
-import { X, Save, RefreshCw, Moon, Leaf, Sun, Star, Heart, Flame, Sparkles, Zap, Eye, Shield, Flower2, TreePine, Wind, Droplets, CloudSun, ChevronLeft, ChevronRight, Plus, Trash2, UploadCloud, Image as ImageIcon, Loader2, Users, Columns2 } from "lucide-react";
-import type { PageBlock, BlockType, CardItem, DatabaseTherapist } from "@/lib/types";
+import { X, Save, RefreshCw, Moon, Leaf, Sun, Star, Heart, Flame, Sparkles, Zap, Eye, Shield, Flower2, TreePine, Wind, Droplets, CloudSun, Plus, Trash2, UploadCloud, Image as ImageIcon, Loader2, Users, Columns2, ArrowUp, ArrowDown, TypeIcon } from "lucide-react";
+import type { PageBlock, BlockType, CardItem, DatabaseTherapist, LightboxBlock } from "@/lib/types";
 import { BLOCK_TEMPLATES } from "@/lib/types";
 import { ImageUploader } from "./ImageUploader";
 
@@ -312,6 +312,91 @@ interface BlockEditorModalProps {
   pageRoute?: string;
 }
 
+/* ---- Sub-component para Edição de Blocos Fixos do Lightbox ---- */
+function LightboxBlocksEditor({ 
+  blocks = [], 
+  onChange 
+}: { 
+  blocks: LightboxBlock[]; 
+  onChange: (b: LightboxBlock[]) => void;
+}) {
+  const handleAddText = () => {
+    onChange([...blocks, { id: Math.random().toString(36).substr(2, 9), type: 'text', content: '' }]);
+  };
+
+  const handleAddImage = () => {
+    onChange([...blocks, { id: Math.random().toString(36).substr(2, 9), type: 'image', content: '' }]);
+  };
+
+  const handeRemove = (index: number) => {
+    const newBlocks = [...blocks];
+    newBlocks.splice(index, 1);
+    onChange(newBlocks);
+  };
+
+  const handleMove = (index: number, direction: 'up' | 'down') => {
+    if (direction === 'up' && index === 0) return;
+    if (direction === 'down' && index === blocks.length - 1) return;
+    const newBlocks = [...blocks];
+    const targetIdx = direction === 'up' ? index - 1 : index + 1;
+    [newBlocks[index], newBlocks[targetIdx]] = [newBlocks[targetIdx], newBlocks[index]];
+    onChange(newBlocks);
+  };
+
+  const handleChange = (index: number, value: string) => {
+    const newBlocks = [...blocks];
+    newBlocks[index].content = value;
+    onChange(newBlocks);
+  };
+
+  return (
+    <div className="space-y-4 mt-2">
+      <div className="space-y-3">
+        {blocks.map((b, i) => (
+          <div key={b.id} className="p-3 bg-black/40 border border-white/5 rounded-xl space-y-2 relative group">
+            <div className="flex items-center justify-between mb-2 pb-2 border-b border-white/5">
+              <span className="text-[10px] font-medium uppercase tracking-wider text-slate-500 flex items-center gap-1">
+                {b.type === 'text' ? <TypeIcon size={12}/> : <ImageIcon size={12}/>}
+                Bloco de {b.type === 'text' ? 'Texto' : 'Imagem'}
+              </span>
+              <div className="flex items-center gap-1">
+                <button onClick={() => handleMove(i, 'up')} disabled={i === 0} className="p-1 text-slate-500 hover:text-white disabled:opacity-30"><ArrowUp size={14}/></button>
+                <button onClick={() => handleMove(i, 'down')} disabled={i === blocks.length - 1} className="p-1 text-slate-500 hover:text-white disabled:opacity-30"><ArrowDown size={14}/></button>
+                <button onClick={() => handeRemove(i)} className="p-1 text-red-500/70 hover:text-red-500"><Trash2 size={14}/></button>
+              </div>
+            </div>
+            {b.type === 'text' ? (
+               <textarea
+                 value={b.content}
+                 placeholder="Digite os parágrafos aqui..."
+                 onChange={(e) => handleChange(i, e.target.value)}
+                 className="w-full bg-midnight-950/80 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50 min-h-[100px]"
+               />
+            ) : (
+               <div className="pt-1">
+                 <ImageUploader 
+                   currentImageUrl={b.content || null} 
+                   onImageUploaded={(url) => handleChange(i, url)} 
+                 />
+               </div>
+            )}
+          </div>
+        ))}
+        {blocks.length === 0 && <p className="text-xs text-slate-500 text-center py-4 border border-dashed border-white/10 rounded-xl">Nenhum bloco livre adicionado ainda.</p>}
+      </div>
+
+      <div className="flex items-center gap-3 pt-2">
+        <button onClick={handleAddText} className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/10 bg-midnight-900/50 hover:bg-midnight-800 hover:border-white/20 text-xs text-slate-300 font-medium transition-all">
+          <TypeIcon size={14} /> + Parágrafo
+        </button>
+        <button onClick={handleAddImage} className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/10 bg-midnight-900/50 hover:bg-midnight-800 hover:border-gold-500/30 text-xs text-gold-400 font-medium transition-all">
+          <ImageIcon size={14} /> + Imagem Exibição
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function BlockEditorModal({ isOpen, onClose, onSave, existingBlock, selectedType, pageRoute = "home" }: BlockEditorModalProps) {
   const [loading, setLoading] = useState(false);
   
@@ -553,6 +638,7 @@ export function BlockEditorModal({ isOpen, onClose, onSave, existingBlock, selec
                           <option value="text">Apenas Texto</option>
                           <option value="image_text">Imagem + Texto</option>
                           <option value="video">Vídeo do YouTube</option>
+                          <option value="custom_blocks">Narrativa Avançada (Textos + Múltiplas Imagens)</option>
                         </select>
                       </div>
                     );
@@ -573,8 +659,23 @@ export function BlockEditorModal({ isOpen, onClose, onSave, existingBlock, selec
                     );
                   }
 
+                  if (field === 'lightbox_blocks') {
+                    if (content.lightbox_type !== 'custom_blocks') return null;
+                    return (
+                      <div key={field} className="space-y-2 mt-4 border-t border-white/5 pt-4">
+                        <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">
+                          Editor de Blocos Livres
+                        </label>
+                        <LightboxBlocksEditor 
+                          blocks={(content.lightbox_blocks as LightboxBlock[]) || []}
+                          onChange={(newBlocks) => setContent({ ...content, lightbox_blocks: newBlocks })}
+                        />
+                      </div>
+                    );
+                  }
+
                   if (field === 'lightbox_video_url' && content.lightbox_type !== 'video') return null;
-                  if (field === 'lightbox_text' && content.lightbox_type === 'video') return null;
+                  if (field === 'lightbox_text' && (content.lightbox_type === 'video' || content.lightbox_type === 'custom_blocks')) return null;
 
                   // Let it fallthrough to standard inputs, just correct the label
                 }
@@ -770,6 +871,7 @@ export function BlockEditorModal({ isOpen, onClose, onSave, existingBlock, selec
                               <option value="text">Apenas Texto</option>
                               <option value="image_text">Imagem + Texto</option>
                               <option value="video">Vídeo do YouTube</option>
+                              <option value="custom_blocks">Narrativa Avançada (Textos + Múltiplas Imagens)</option>
                             </select>
                           </div>
 
@@ -783,7 +885,7 @@ export function BlockEditorModal({ isOpen, onClose, onSave, existingBlock, selec
                             />
                           </div>
 
-                          {cardData.lightbox_type !== 'video' && (
+                          {cardData.lightbox_type !== 'video' && cardData.lightbox_type !== 'custom_blocks' && (
                             <div className="space-y-2">
                               <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Texto Informativo</label>
                               <textarea
@@ -813,6 +915,16 @@ export function BlockEditorModal({ isOpen, onClose, onSave, existingBlock, selec
                                 placeholder="Ex: https://www.youtube.com/embed/XXXXX"
                                 onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, lightbox_video_url: e.target.value }})}
                                 className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50"
+                              />
+                            </div>
+                          )}
+
+                          {cardData.lightbox_type === 'custom_blocks' && (
+                            <div className="space-y-2 pt-2 border-t border-white/5">
+                              <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Editor de Blocos Livres</label>
+                              <LightboxBlocksEditor 
+                                blocks={(cardData.lightbox_blocks as LightboxBlock[]) || []}
+                                onChange={(newBlocks) => setContent({ ...content, [cardKey]: { ...cardData, lightbox_blocks: newBlocks }})}
                               />
                             </div>
                           )}

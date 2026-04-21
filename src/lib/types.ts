@@ -125,6 +125,12 @@ export interface ListaTerapeutasContent {
   therapist_ids: string[];  // IDs of selected therapists from DB
 }
 
+export interface LightboxBlock {
+  id: string;
+  type: 'text' | 'image';
+  content: string;
+}
+
 export interface DestaqueContent {
   tag: string;
   title: string;
@@ -136,11 +142,12 @@ export interface DestaqueContent {
   button2_text: string;
   button2_link: string;
   button2_action?: 'link' | 'lightbox';
-  lightbox_type?: 'text' | 'image_text' | 'video';
+  lightbox_type?: 'text' | 'image_text' | 'video' | 'custom_blocks';
   lightbox_title?: string;
   lightbox_text?: string;
   lightbox_image_url?: string;
   lightbox_video_url?: string;
+  lightbox_blocks?: LightboxBlock[];
 }
 
 export interface DuploCardItem {
@@ -150,11 +157,12 @@ export interface DuploCardItem {
   button_text: string;
   button_link: string;
   action_type?: 'link' | 'lightbox';
-  lightbox_type?: 'text' | 'image_text' | 'video';
+  lightbox_type?: 'text' | 'image_text' | 'video' | 'custom_blocks';
   lightbox_title?: string;
   lightbox_text?: string;
   lightbox_image_url?: string;
   lightbox_video_url?: string;
+  lightbox_blocks?: LightboxBlock[];
 }
 
 export interface DuploCardContent {
