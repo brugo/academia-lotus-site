@@ -128,7 +128,7 @@ export function DestaqueBlock({ block }: { block: PageBlock }) {
             <div className="absolute bottom-0 left-0 w-96 h-96 bg-midnight-600/10 blur-[100px] pointer-events-none" />
 
             {/* Conteúdos */}
-            <div className="overflow-y-auto w-full custom-scrollbar relative z-10 flex-grow">
+            <div data-lenis-prevent="true" className="overflow-y-auto w-full custom-scrollbar relative z-10 flex-grow">
               
               {/* === APENAS TEXTO === */}
               {(!content.lightbox_type || content.lightbox_type === 'text') && (
