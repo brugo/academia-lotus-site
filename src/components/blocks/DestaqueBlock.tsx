@@ -16,6 +16,17 @@ export function DestaqueBlock({ block }: { block: PageBlock }) {
     setMounted(true);
   }, []);
 
+  useEffect(() => {
+    if (isLightboxOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isLightboxOpen]);
+
   return (
     <section className="w-full relative z-10 py-24 px-6 bg-midnight-950/80 backdrop-blur-xl">
       <div className="container mx-auto">

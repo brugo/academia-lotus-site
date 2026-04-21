@@ -21,6 +21,17 @@ export function DuploCardBlock({ block }: { block: PageBlock }) {
     setMounted(true);
   }, []);
 
+  useEffect(() => {
+    if (openLightboxId) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [openLightboxId]);
+
   if (!card1 || !card2) return null;
 
   const handleCardClick = (card: DuploCardItem, id: 1 | 2) => {
