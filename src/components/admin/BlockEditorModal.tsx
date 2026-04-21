@@ -518,12 +518,75 @@ export function BlockEditorModal({ isOpen, onClose, onSave, existingBlock, selec
                   );
                 }
 
+                if (field === 'button2_action') {
+                  return (
+                    <div key={field} className="space-y-2 mt-4 border-t border-white/5 pt-4">
+                      <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">
+                        Ação do Botão 2
+                      </label>
+                      <select
+                        value={(content[field] as string) || 'link'}
+                        onChange={(e) => setContent({ ...content, [field]: e.target.value })}
+                        className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50 appearance-none cursor-pointer"
+                      >
+                        <option value="link">Redirecionar para uma Página (Link)</option>
+                        <option value="lightbox">Abrir Lightbox (Popup interativo)</option>
+                      </select>
+                    </div>
+                  );
+                }
+
+                if (field.startsWith('lightbox_')) {
+                  if (content.button2_action !== 'lightbox') return null;
+
+                  if (field === 'lightbox_type') {
+                    return (
+                      <div key={field} className="space-y-2 mt-2">
+                        <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">
+                          Conteúdo do Lightbox
+                        </label>
+                        <select
+                          value={(content[field] as string) || 'text'}
+                          onChange={(e) => setContent({ ...content, [field]: e.target.value })}
+                          className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50 appearance-none cursor-pointer"
+                        >
+                          <option value="text">Apenas Texto</option>
+                          <option value="image_text">Imagem + Texto</option>
+                          <option value="video">Vídeo do YouTube</option>
+                        </select>
+                      </div>
+                    );
+                  }
+
+                  if (field === 'lightbox_image_url') {
+                    if (content.lightbox_type !== 'image_text') return null;
+                    return (
+                      <div key={field} className="space-y-3 mt-4 border-t border-white/5 pt-4">
+                        <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">
+                          Imagem do Lightbox
+                        </label>
+                        <ImageUploader 
+                          currentImageUrl={content[field] as string} 
+                          onImageUploaded={(url) => setContent({ ...content, [field]: url })} 
+                        />
+                      </div>
+                    );
+                  }
+
+                  if (field === 'lightbox_video_url' && content.lightbox_type !== 'video') return null;
+                  if (field === 'lightbox_text' && content.lightbox_type === 'video') return null;
+
+                  // Let it fallthrough to standard inputs, just correct the label
+                }
+
+                if (field === 'button2_link' && content.button2_action === 'lightbox') return null;
+
                 return (
                   <div key={field} className="space-y-2">
                     <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">
                       {field.replace(/_/g, ' ')}
                     </label>
-                    {field.includes('description') || field.includes('subtitle') ? (
+                    {field.includes('description') || field.includes('subtitle') || field === 'lightbox_text' ? (
                       <textarea
                         value={content[field] as string}
                         onChange={(e) => setContent({ ...content, [field]: e.target.value })}

@@ -135,6 +135,12 @@ export interface DestaqueContent {
   show_button2: boolean;
   button2_text: string;
   button2_link: string;
+  button2_action?: 'link' | 'lightbox';
+  lightbox_type?: 'text' | 'image_text' | 'video';
+  lightbox_title?: string;
+  lightbox_text?: string;
+  lightbox_image_url?: string;
+  lightbox_video_url?: string;
 }
 
 export interface DuploCardItem {
@@ -217,6 +223,12 @@ export const BLOCK_TEMPLATES: Record<BlockType, { label: string; icon: string; d
       show_button2: true,
       button2_text: 'Ler Primeiro Capítulo',
       button2_link: '/cursos',
+      button2_action: 'link',
+      lightbox_type: 'text',
+      lightbox_title: 'O Primeiro Capítulo',
+      lightbox_text: 'O texto livre para exibição dentro do seu modal, contando um pouco sobre os princípios desta jornada e porquê este momento é perfeito para iniciá-la...',
+      lightbox_image_url: '',
+      lightbox_video_url: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
     },
   },
   cupom: {
