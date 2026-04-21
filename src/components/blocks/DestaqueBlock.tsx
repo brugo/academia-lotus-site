@@ -102,7 +102,7 @@ export function DestaqueBlock({ block }: { block: PageBlock }) {
           />
           
           {/* Modal Container Premium */}
-          <div className="relative z-10 bg-gradient-to-br from-midnight-900 to-midnight-950 border border-gold-500/30 rounded-2xl md:rounded-3xl shadow-[0_0_80px_-15px_rgba(212,175,55,0.4)] w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-500 ring-1 ring-white/5">
+          <div className="relative z-10 bg-gradient-to-br from-midnight-900 to-midnight-950 border border-gold-500/30 rounded-2xl md:rounded-3xl shadow-[0_0_80px_-15px_rgba(212,175,55,0.4)] w-full max-w-4xl max-h-[90vh] min-h-[200px] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-500 ring-1 ring-white/5">
             
             {/* Fechar */}
             <button 
@@ -117,10 +117,10 @@ export function DestaqueBlock({ block }: { block: PageBlock }) {
             <div className="absolute bottom-0 left-0 w-96 h-96 bg-midnight-600/10 blur-[100px] pointer-events-none" />
 
             {/* Conteúdos */}
-            <div className="overflow-y-auto w-full custom-scrollbar relative z-10">
+            <div className="overflow-y-auto w-full custom-scrollbar relative z-10 flex-grow">
               
               {/* === APENAS TEXTO === */}
-              {content.lightbox_type === 'text' && (
+              {(!content.lightbox_type || content.lightbox_type === 'text') && (
                 <div className="p-8 md:p-14 space-y-6 relative">
                   {content.lightbox_title && (
                     <h3 className="font-serif text-3xl md:text-4xl text-gold-400 mb-6 border-b border-gold-500/10 pb-6 relative inline-block">
