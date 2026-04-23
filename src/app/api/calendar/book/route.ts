@@ -1,13 +1,7 @@
 import { NextResponse } from "next/server";
 import { calendar } from "@/lib/google-calendar";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@/utils/supabase/server";
 import { addMinutes, addHours } from "date-fns";
-
-// Instância de Admin do Supabase (para furar RLS e inserir do servidor de forma segura)
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY! // Fallback para dev local
-);
 
 export async function POST(request: Request) {
   try {
@@ -41,7 +35,10 @@ export async function POST(request: Request) {
 
     // 2. Registrar no nosso Supabase
     if (therapistId) {
-      const { error: dbError } = await supabaseAdmin.from('appointments').insert({
+      const supabase = await createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      const { error: dbError } = await supabase.from('appointments').insert({
         therapist_id: therapistId,
         client_name: clientName,
         client_email: clientEmail,
@@ -49,7 +46,12 @@ export async function POST(request: Request) {
         end_time: end.toISOString(),
         google_event_id: event.data.id,
       });
-      if (dbError) console.error("Falha ao salvar no banco (RLS?):", dbError);
+      
+      if (dbError) {
+        console.error("Falha ao salvar no banco (RLS?):", dbError);
+        // Se houver erro de RLS, vamos avisar para debugar
+        throw new Error("Agendado no Google, mas falha ao salvar no seu Histórico (Erro de Banco de Dados).");
+      }
     }
 
     return NextResponse.json({ 

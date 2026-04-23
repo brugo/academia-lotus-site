@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Home, BookOpen, Heart, Users, User, LogOut } from 'lucide-react';
+import { Home, BookOpen, Heart, Users, User, LogOut, Sparkles } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
@@ -39,21 +39,26 @@ export default function Navbar({ user }: { user: SupabaseUser | null }) {
             <Link href="/cursos" className="hover:text-gold-400 hover:tracking-widest transition-all duration-300">Cursos</Link>
             <Link href="/atendimentos" className="hover:text-gold-400 hover:tracking-widest transition-all duration-300">Atendimentos</Link>
             <Link href="/terapeutas" className="hover:text-gold-400 hover:tracking-widest transition-all duration-300">Terapeutas</Link>
+            {user && (
+              <Link href="/jornada" className="text-gold-400 hover:text-gold-300 hover:tracking-widest transition-all duration-300 flex items-center gap-1.5">
+                <Sparkles size={14} /> Minha Jornada
+              </Link>
+            )}
           </nav>
           
           {/* Desktop login/user button */}
           {user ? (
             <div className="hidden md:flex items-center gap-4">
-              <div className="flex items-center gap-3">
+              <Link href="/jornada" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                 {user.user_metadata?.avatar_url ? (
-                  <img src={user.user_metadata.avatar_url} alt="Avatar" className="w-8 h-8 rounded-full border border-gold-500/30" />
+                  <img src={user.user_metadata.avatar_url} alt="Avatar" className="w-8 h-8 rounded-full border border-gold-500/30 object-cover" />
                 ) : (
                   <div className="w-8 h-8 rounded-full bg-gold-900/50 flex items-center justify-center border border-gold-500/30 text-gold-400">
                     <User size={14} />
                   </div>
                 )}
                 <span className="text-sm text-slate-300 font-medium">{user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0]}</span>
-              </div>
+              </Link>
               <button onClick={handleLogout} className="text-slate-500 hover:text-red-400 transition-colors" title="Sair">
                 <LogOut size={18} />
               </button>
@@ -112,17 +117,19 @@ export default function Navbar({ user }: { user: SupabaseUser | null }) {
           </Link>
           
           {user ? (
-            <button 
-              onClick={handleLogout}
-              className="flex flex-col items-center justify-center gap-1 transition-colors text-slate-400 hover:text-red-400"
+            <Link 
+              href="/jornada"
+              className={`flex flex-col items-center justify-center gap-1 transition-colors ${
+                pathname === '/jornada' ? 'text-gold-400' : 'text-slate-400'
+              }`}
             >
               {user.user_metadata?.avatar_url ? (
-                <img src={user.user_metadata.avatar_url} alt="Avatar" className="w-5 h-5 rounded-full border border-slate-700" />
+                <img src={user.user_metadata.avatar_url} alt="Avatar" className="w-5 h-5 rounded-full border border-gold-500/50 object-cover" />
               ) : (
-                <LogOut size={20} />
+                <Sparkles size={20} />
               )}
-              <span className="text-[10px] font-medium">Sair</span>
-            </button>
+              <span className="text-[10px] font-medium">Jornada</span>
+            </Link>
           ) : (
             <Link 
               href="/login" 
