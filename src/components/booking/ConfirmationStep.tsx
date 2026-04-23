@@ -5,14 +5,14 @@ import { format } from "date-fns";
 import ptBR from "date-fns/locale/pt-BR";
 import { ArrowLeft, CheckCircle2, Lock, Loader2, Video } from "lucide-react";
 
-export function ConfirmationStep({ therapist, date, onBack, requestedService }: { therapist: any, date: Date, onBack: () => void, requestedService?: string }) {
+export function ConfirmationStep({ therapist, date, onBack, requestedService, user }: { therapist: any, date: Date, onBack: () => void, requestedService?: string, user?: any }) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [meetLink, setMeetLink] = useState("");
   
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
+    name: user?.user_metadata?.full_name || "",
+    email: user?.email || "",
     phone: ""
   });
 
@@ -120,7 +120,8 @@ export function ConfirmationStep({ therapist, date, onBack, requestedService }: 
                 type="text" 
                 value={formData.name}
                 onChange={e => setFormData({...formData, name: e.target.value})}
-                className="w-full bg-midnight-950/50 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-gold-500 transition-colors" 
+                readOnly={!!user?.user_metadata?.full_name}
+                className={`w-full bg-midnight-950/50 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-gold-500 transition-colors ${user?.user_metadata?.full_name ? 'opacity-70 cursor-not-allowed' : ''}`} 
                 placeholder="Ex: Clara Luz" 
               />
             </div>
@@ -130,7 +131,8 @@ export function ConfirmationStep({ therapist, date, onBack, requestedService }: 
                 type="email" 
                 value={formData.email}
                 onChange={e => setFormData({...formData, email: e.target.value})}
-                className="w-full bg-midnight-950/50 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-gold-500 transition-colors" 
+                readOnly={!!user?.email}
+                className={`w-full bg-midnight-950/50 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-gold-500 transition-colors ${user?.email ? 'opacity-70 cursor-not-allowed' : ''}`} 
                 placeholder="clara@email.com" 
               />
             </div>

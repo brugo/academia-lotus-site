@@ -1,20 +1,20 @@
 export const dynamic = 'force-dynamic';
 
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@/utils/supabase/server";
 import { BookingFlow } from "@/components/booking/BookingFlow";
 
 export default async function AgendamentoPage({ searchParams }: { searchParams: Promise<{ servico?: string }> }) {
   const awaitedParams = await searchParams;
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = await createClient();
+
   
   // Buscar terapeutas ativos
   const { data: therapists } = await supabase
     .from("therapists")
     .select("*")
     .eq("is_active", true);
+
+  const { data: { user } } = await supabase.auth.getUser();
 
   return (
     <main className="min-h-screen pt-24 bg-midnight-950 font-sans text-white selection:bg-gold-500/30 overflow-hidden relative">
@@ -29,7 +29,7 @@ export default async function AgendamentoPage({ searchParams }: { searchParams: 
           </p>
         </div>
 
-        <BookingFlow initialTherapists={therapists || []} requestedService={awaitedParams.servico} />
+        <BookingFlow initialTherapists={therapists || []} requestedService={awaitedParams.servico} user={user} />
       </div>
     </main>
   );

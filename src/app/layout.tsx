@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import SmoothScrollProvider from "@/components/providers/SmoothScrollProvider";
+import { createClient } from "@/utils/supabase/server";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -20,11 +21,16 @@ export const metadata: Metadata = {
   description: "Clínica de autoconhecimento e agendamento de atendimentos.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <html
       lang="pt-BR"
@@ -32,7 +38,7 @@ export default function RootLayout({
     >
       <body className="min-h-screen flex flex-col font-sans selection:bg-gold-500/30 selection:text-gold-200">
         <SmoothScrollProvider>
-          <Navbar />
+          <Navbar user={user} />
           <main className="flex-grow flex flex-col relative">
             {children}
           </main>

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { calendar } from "@/lib/google-calendar";
 import { createClient } from "@supabase/supabase-js";
-import { addMinutes } from "date-fns";
+import { addMinutes, addHours } from "date-fns";
 
 // Instância de Admin do Supabase (para furar RLS e inserir do servidor de forma segura)
 const supabaseAdmin = createClient(

@@ -1,11 +1,21 @@
 "use client";
 
 import Link from 'next/link';
-import { Home, BookOpen, Heart, Users, User } from 'lucide-react';
-import { usePathname } from 'next/navigation';
+import { Home, BookOpen, Heart, Users, User, LogOut } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { createClient } from '@/utils/supabase/client';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 
-export default function Navbar() {
+export default function Navbar({ user }: { user: SupabaseUser | null }) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.refresh();
+  };
+
 
   if (pathname.startsWith('/admin') || pathname.startsWith('/login')) {
     return null;
@@ -31,11 +41,29 @@ export default function Navbar() {
             <Link href="/terapeutas" className="hover:text-gold-400 hover:tracking-widest transition-all duration-300">Terapeutas</Link>
           </nav>
           
-          {/* Desktop login button */}
-          <Link href="/login" className="hidden md:flex items-center gap-2 text-sm font-medium px-5 py-2.5 text-gold-400 border border-gold-500/30 rounded-full hover:bg-gold-500/10 hover:border-gold-400 transition-all duration-300 shadow-sm leading-none">
-            <User size={16} />
-            <span className="mb-[-2px]">Entrar</span>
-          </Link>
+          {/* Desktop login/user button */}
+          {user ? (
+            <div className="hidden md:flex items-center gap-4">
+              <div className="flex items-center gap-3">
+                {user.user_metadata?.avatar_url ? (
+                  <img src={user.user_metadata.avatar_url} alt="Avatar" className="w-8 h-8 rounded-full border border-gold-500/30" />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-gold-900/50 flex items-center justify-center border border-gold-500/30 text-gold-400">
+                    <User size={14} />
+                  </div>
+                )}
+                <span className="text-sm text-slate-300 font-medium">{user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0]}</span>
+              </div>
+              <button onClick={handleLogout} className="text-slate-500 hover:text-red-400 transition-colors" title="Sair">
+                <LogOut size={18} />
+              </button>
+            </div>
+          ) : (
+            <Link href="/login" className="hidden md:flex items-center gap-2 text-sm font-medium px-5 py-2.5 text-gold-400 border border-gold-500/30 rounded-full hover:bg-gold-500/10 hover:border-gold-400 transition-all duration-300 shadow-sm leading-none">
+              <User size={16} />
+              <span className="mb-[-2px]">Entrar</span>
+            </Link>
+          )}
         </div>
       </header>
 
@@ -83,15 +111,29 @@ export default function Navbar() {
             <span className="text-[10px] font-medium">Equipe</span>
           </Link>
           
-          <Link 
-            href="/login" 
-            className={`flex flex-col items-center justify-center gap-1 transition-colors ${
-              pathname === '/login' ? 'text-gold-400' : 'text-slate-400'
-            }`}
-          >
-            <User size={20} />
-            <span className="text-[10px] font-medium">Entrar</span>
-          </Link>
+          {user ? (
+            <button 
+              onClick={handleLogout}
+              className="flex flex-col items-center justify-center gap-1 transition-colors text-slate-400 hover:text-red-400"
+            >
+              {user.user_metadata?.avatar_url ? (
+                <img src={user.user_metadata.avatar_url} alt="Avatar" className="w-5 h-5 rounded-full border border-slate-700" />
+              ) : (
+                <LogOut size={20} />
+              )}
+              <span className="text-[10px] font-medium">Sair</span>
+            </button>
+          ) : (
+            <Link 
+              href="/login" 
+              className={`flex flex-col items-center justify-center gap-1 transition-colors ${
+                pathname === '/login' ? 'text-gold-400' : 'text-slate-400'
+              }`}
+            >
+              <User size={20} />
+              <span className="text-[10px] font-medium">Entrar</span>
+            </Link>
+          )}
         </div>
       </nav>
     </>
