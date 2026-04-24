@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/utils/supabase/client";
 import { Plus, Edit2, CheckCircle2, UserCircle, Star, Trash2, AlertTriangle, GripVertical, Settings } from "lucide-react";
 import { ImageUploader } from "@/components/admin/ImageUploader";
 import Image from "next/image";
@@ -23,6 +23,7 @@ type Therapist = {
 };
 
 export default function TerapeutasAdminPage() {
+  const supabase = createClient();
   const [therapists, setTherapists] = useState<Therapist[]>([]);
   const [services, setServices] = useState<{slug: string, title: string}[]>([]);
   const [loading, setLoading] = useState(true);
@@ -95,9 +96,17 @@ export default function TerapeutasAdminPage() {
     };
 
     if (isEditing) {
-      await supabase.from("therapists").update(finalData).eq("id", isEditing);
+      const { error } = await supabase.from("therapists").update(finalData).eq("id", isEditing);
+      if (error) {
+        alert("Erro ao salvar terapeuta: " + error.message);
+        return;
+      }
     } else {
-      await supabase.from("therapists").insert([finalData]);
+      const { error } = await supabase.from("therapists").insert([finalData]);
+      if (error) {
+        alert("Erro ao criar terapeuta: " + error.message);
+        return;
+      }
     }
     
     setShowAddForm(false);

@@ -124,8 +124,9 @@ export default async function PortalTerapeutaPage() {
                           {format(new Date(app.start_time), "EEEE, dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
                         </div>
                         <h3 className="text-xl text-white font-medium mb-1">
-                          Paciente: {app.client_name}
+                          {app.service_name || 'Sessão Lótus'}
                         </h3>
+                        <p className="text-slate-300 text-sm mb-1">Paciente: {app.client_name}</p>
                         <p className="text-slate-400 text-sm">{app.client_email}</p>
                         
                         {app.client_whatsapp && (
@@ -181,7 +182,7 @@ export default async function PortalTerapeutaPage() {
                         {format(new Date(app.start_time), "dd MMM yyyy", { locale: ptBR })}
                       </div>
                       <div className="text-white font-medium text-sm">
-                        {app.client_name}
+                        {app.service_name || 'Sessão'} • {app.client_name}
                       </div>
                     </div>
                   ))}

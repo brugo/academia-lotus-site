@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/utils/supabase/client";
 import { Plus, Edit2, CheckCircle2, Component, GripVertical, Upload, ImageIcon, X, Settings } from "lucide-react";
 import type { DatabaseService, DatabaseTherapist } from "@/lib/types";
 import { BlockManager } from "@/components/admin/BlockManager";
@@ -17,6 +17,7 @@ const toSlug = (text: string) => {
 };
 
 export default function ServicesAdminPage() {
+  const supabase = createClient();
   const [services, setServices] = useState<DatabaseService[]>([]);
   const [therapists, setTherapists] = useState<DatabaseTherapist[]>([]);
   const [loading, setLoading] = useState(true);
@@ -92,32 +93,34 @@ export default function ServicesAdminPage() {
     let serviceId = isEditing;
 
     if (isEditing) {
-      await supabase.from("services").update(finalData).eq("id", isEditing);
+      const { error } = await supabase.from("services").update(finalData).eq("id", isEditing);
+      if (error) { alert("Erro ao atualizar técnica: " + error.message); return; }
     } else {
       const inserted = await supabase.from("services").insert([finalData]).select().single();
+      if (inserted.error) { alert("Erro ao criar técnica: " + inserted.error.message); return; }
       if (inserted.data) {
         serviceId = inserted.data.id;
       }
     }
     
     // Atualizar os Arrays dos Terapeutas (The Reverse Mapping)
-    // Para todos os terapeutas: se ele está no selectedTherapistIds, garantimos que tem o slug.
-    // Se não está, garantimos que NÃO tem o slug.
     const updates = therapists.map(async (t) => {
        const hasService = t.supported_services?.includes(slug);
        const shouldHave = selectedTherapistIds.includes(t.id);
        
        if (hasService && !shouldHave) {
           // Remove
-          await supabase.from("therapists")
+          const { error } = await supabase.from("therapists")
             .update({ supported_services: t.supported_services.filter(s => s !== slug) })
             .eq("id", t.id);
+          if (error) console.error("Erro ao atualizar terapeuta:", error);
        } else if (!hasService && shouldHave) {
           // Add
           const prev = t.supported_services || [];
-          await supabase.from("therapists")
+          const { error } = await supabase.from("therapists")
             .update({ supported_services: [...prev, slug] })
             .eq("id", t.id);
+          if (error) console.error("Erro ao atualizar terapeuta:", error);
        }
     });
 

@@ -128,9 +128,9 @@ export default async function JornadaPage() {
                           {format(new Date(app.start_time), "EEEE, dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
                         </div>
                         <h3 className="text-xl text-white font-medium mb-1">
-                          Sessão com {app.therapists?.name || 'Terapeuta'}
+                          {app.service_name || 'Sessão Lótus'}
                         </h3>
-                        <p className="text-slate-400 text-sm">{app.therapists?.specialty || 'Terapia Lótus'}</p>
+                        <p className="text-slate-400 text-sm">com {app.therapists?.name || 'Terapeuta'} • {app.therapists?.specialty || 'Especialista'}</p>
                       </div>
                       
                       <div className="flex-shrink-0 w-full md:w-auto flex flex-col gap-3">

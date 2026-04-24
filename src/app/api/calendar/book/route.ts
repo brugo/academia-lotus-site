@@ -3,6 +3,21 @@ import { calendar } from "@/lib/google-calendar";
 import { createClient } from "@/utils/supabase/server";
 import { addMinutes, addHours } from "date-fns";
 
+function parseDuration(durationStr: string): number {
+  let minutes = 60; // default 1h
+  if (!durationStr) return minutes;
+  
+  const hMatch = durationStr.match(/(\d+)h/i);
+  const mMatch = durationStr.match(/(\d+)m/i);
+  
+  minutes = 0;
+  if (hMatch) minutes += parseInt(hMatch[1]) * 60;
+  if (mMatch) minutes += parseInt(mMatch[1]);
+  
+  if (minutes === 0) minutes = 60; // fallback
+  return minutes;
+}
+
 export async function POST(request: Request) {
   try {
     const { therapistId, therapistEmail, clientName, clientEmail, clientWhatsapp, startTime, requestedService } = await request.json();
@@ -11,16 +26,33 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Campos obrigatórios faltando" }, { status: 400 });
     }
 
+    const supabase = await createClient();
+    
+    let durationMinutes = 60;
+    let serviceTitle = requestedService || "Sessão Lótus";
+
+    if (requestedService) {
+      // Find the service by matching either slug or title
+      const { data: services } = await supabase.from('services').select('slug, title, duration');
+      const service = services?.find(s => s.slug === requestedService || s.title === requestedService);
+      
+      if (service) {
+        serviceTitle = service.title;
+        if (service.duration) {
+          durationMinutes = parseDuration(service.duration);
+        }
+      }
+    }
+
     const start = new Date(startTime);
-    // Assumindo padrão de 1 hora de consulta
-    const end = addHours(start, 1);
+    const end = addMinutes(start, durationMinutes);
 
     // 1. Criar o evento no Google Calendar Master do Terapeuta
     const event = await calendar.events.insert({
       calendarId: therapistEmail,
       sendUpdates: "all", // Manda e-mail de notificação para ambos!
       requestBody: {
-        summary: requestedService ? `${requestedService} - ${clientName}` : `Sessão Lótus - ${clientName}`,
+        summary: `${serviceTitle} - ${clientName}`,
         description: `Email do cliente: ${clientEmail}\nWhatsApp do cliente: ${clientWhatsapp}`,
         start: {
           dateTime: start.toISOString(),
@@ -43,6 +75,7 @@ export async function POST(request: Request) {
         client_name: clientName,
         client_email: clientEmail,
         client_whatsapp: clientWhatsapp, // Adicionando WhatsApp
+        service_name: serviceTitle, // Salvando o nome da técnica no banco
         start_time: start.toISOString(),
         end_time: end.toISOString(),
         google_event_id: event.data.id,
