@@ -36,10 +36,10 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   // Here we can add route protection.
-  // Example: If user is not logged in and tries to access /agendamento/checkout, redirect to /login
+  // Protect the entire /agendamento route
   if (
     !user &&
-    request.nextUrl.pathname.startsWith('/agendamento/checkout')
+    request.nextUrl.pathname.startsWith('/agendamento')
   ) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone()

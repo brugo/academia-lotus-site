@@ -5,9 +5,9 @@ import { addMinutes, addHours } from "date-fns";
 
 export async function POST(request: Request) {
   try {
-    const { therapistId, therapistEmail, clientName, clientEmail, startTime, requestedService } = await request.json();
+    const { therapistId, therapistEmail, clientName, clientEmail, clientWhatsapp, startTime, requestedService } = await request.json();
 
-    if (!therapistEmail || !clientName || !clientEmail || !startTime) {
+    if (!therapistEmail || !clientName || !clientEmail || !clientWhatsapp || !startTime) {
       return NextResponse.json({ error: "Campos obrigatórios faltando" }, { status: 400 });
     }
 
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
       sendUpdates: "all", // Manda e-mail de notificação para ambos!
       requestBody: {
         summary: requestedService ? `${requestedService} - ${clientName}` : `Sessão Lótus - ${clientName}`,
-        description: `Email do cliente: ${clientEmail}`,
+        description: `Email do cliente: ${clientEmail}\nWhatsApp do cliente: ${clientWhatsapp}`,
         start: {
           dateTime: start.toISOString(),
           timeZone: "America/Sao_Paulo",
@@ -42,9 +42,11 @@ export async function POST(request: Request) {
         therapist_id: therapistId,
         client_name: clientName,
         client_email: clientEmail,
+        client_whatsapp: clientWhatsapp, // Adicionando WhatsApp
         start_time: start.toISOString(),
         end_time: end.toISOString(),
         google_event_id: event.data.id,
+        meet_link: event.data.hangoutLink,
       });
       
       if (dbError) {

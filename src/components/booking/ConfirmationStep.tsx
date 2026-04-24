@@ -13,12 +13,15 @@ export function ConfirmationStep({ therapist, date, onBack, requestedService, us
   const [formData, setFormData] = useState({
     name: user?.user_metadata?.full_name || "",
     email: user?.email || "",
-    phone: ""
+    phone: "" // Novo campo de WhatsApp
   });
 
   const handleBookingClick = async () => {
     // Basic validation
-    if (!formData.name || !formData.email) return;
+    if (!formData.name || !formData.email || !formData.phone) {
+      alert("Por favor, preencha todos os campos, incluindo o WhatsApp.");
+      return;
+    }
 
     setLoading(true);
 
@@ -32,6 +35,7 @@ export function ConfirmationStep({ therapist, date, onBack, requestedService, us
           therapistEmail: therapist.google_calendar_id || therapist.email,
           clientName: formData.name,
           clientEmail: formData.email,
+          clientWhatsapp: formData.phone, // Enviando o WhatsApp para a API
           startTime: date.toISOString(),
           requestedService: requestedService
         })
@@ -111,7 +115,7 @@ export function ConfirmationStep({ therapist, date, onBack, requestedService, us
         {/* Formulário */}
         <div className="md:col-span-3 bg-midnight-900 border border-white/5 rounded-3xl p-8 shadow-2xl relative">
           <h2 className="text-2xl font-serif text-white mb-2">Seus Dados</h2>
-          <p className="text-slate-400 text-sm mb-8">Nós usaremos seu e-mail para enviar o convite oficial do Google Calendar e o link do Meet automaticamente.</p>
+          <p className="text-slate-400 text-sm mb-8">Nós usaremos o seu WhatsApp para lhe enviar as confirmações e o contato do seu terapeuta.</p>
           
           <div className="space-y-5">
             <div className="space-y-2">
@@ -134,6 +138,23 @@ export function ConfirmationStep({ therapist, date, onBack, requestedService, us
                 readOnly={!!user?.email}
                 className={`w-full bg-midnight-950/50 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-gold-500 transition-colors ${user?.email ? 'opacity-70 cursor-not-allowed' : ''}`} 
                 placeholder="clara@email.com" 
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-300">WhatsApp <span className="text-gold-500">*</span></label>
+              <input 
+                type="tel" 
+                value={formData.phone}
+                onChange={e => {
+                  let value = e.target.value.replace(/\D/g, '');
+                  value = value.substring(0, 11);
+                  if (value.length > 2) value = `(${value.substring(0, 2)}) ${value.substring(2)}`;
+                  if (value.length > 9) value = `${value.substring(0, 10)}-${value.substring(10)}`;
+                  setFormData({...formData, phone: value});
+                }}
+                className="w-full bg-midnight-950/50 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-gold-500 transition-colors" 
+                placeholder="(11) 99999-9999"
+                required 
               />
             </div>
           </div>
@@ -172,7 +193,7 @@ export function ConfirmationStep({ therapist, date, onBack, requestedService, us
           </div>
 
           <button 
-            disabled={loading || !formData.name || !formData.email}
+            disabled={loading || !formData.name || !formData.email || !formData.phone}
             onClick={handleBookingClick}
             className="w-full px-6 py-4 bg-gold-600 hover:bg-gold-500 disabled:bg-slate-800 disabled:text-slate-500 text-midnight-950 font-medium rounded-2xl transition-all shadow-lg flex items-center justify-center gap-3"
           >

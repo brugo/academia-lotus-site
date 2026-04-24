@@ -15,6 +15,7 @@ type Therapist = {
   photo_url: string;
   email: string;
   google_calendar_id: string;
+  whatsapp: string; // Adicionado WhatsApp do terapeuta
   base_price: number;
   is_active: boolean;
   supported_services: string[];
@@ -31,7 +32,7 @@ export default function TerapeutasAdminPage() {
   const [therapistToDelete, setTherapistToDelete] = useState<Therapist | null>(null);
   const [activeTab, setActiveTab] = useState<'content' | 'blocks'>('content');
   const [formData, setFormData] = useState<Partial<Therapist>>({
-    name: "", specialty: "", bio: "", email: "", google_calendar_id: "", photo_url: "/user-placeholder.png", base_price: 150, is_active: true, supported_services: [], order_index: 0
+    name: "", specialty: "", bio: "", email: "", google_calendar_id: "", whatsapp: "", photo_url: "/user-placeholder.png", base_price: 150, is_active: true, supported_services: [], order_index: 0
   });
 
   useEffect(() => {
@@ -101,7 +102,7 @@ export default function TerapeutasAdminPage() {
     
     setShowAddForm(false);
     setIsEditing(null);
-    setFormData({ name: "", specialty: "", bio: "", email: "", google_calendar_id: "", photo_url: "/user-placeholder.png", base_price: 150, is_active: true, supported_services: [], order_index: 0 });
+    setFormData({ name: "", specialty: "", bio: "", email: "", google_calendar_id: "", whatsapp: "", photo_url: "/user-placeholder.png", base_price: 150, is_active: true, supported_services: [], order_index: 0 });
     fetchTherapistsAndServices();
   };
 
@@ -178,6 +179,11 @@ export default function TerapeutasAdminPage() {
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-slate-300">E-mail de Login * (Usado para o Meet)</label>
                   <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full bg-midnight-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-gold-500 transition-colors" placeholder="terapeuta@gmail.com" />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-300">WhatsApp de Contato *</label>
+                  <input type="tel" value={formData.whatsapp || ""} onChange={e => setFormData({...formData, whatsapp: e.target.value})} className="w-full bg-midnight-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-gold-500 transition-colors" placeholder="(11) 99999-9999" />
                 </div>
 
                 <div className="space-y-2">

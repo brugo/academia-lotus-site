@@ -2,11 +2,11 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
 import { format, isAfter, isBefore } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
-import { Calendar, Clock, Video, User as UserIcon, CheckCircle2, ChevronRight, Sparkles } from 'lucide-react';
+import { Calendar, Clock, MessageCircle, User as UserIcon, CheckCircle2, ChevronRight, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Minha Jornada - Academia Lótus',
+  title: 'Meu Perfil - Academia Lótus',
   description: 'Acompanhe seus agendamentos e histórico na Academia Espiritual de Lótus.',
 };
 
@@ -18,6 +18,15 @@ export default async function JornadaPage() {
     redirect('/login?next=/jornada');
   }
 
+  // Verificar se o usuário logado é um terapeuta
+  const { data: loggedTherapist } = await supabase
+    .from('therapists')
+    .select('id')
+    .eq('email', user.email)
+    .single();
+
+  const isTherapist = !!loggedTherapist;
+
   // Buscar todos os agendamentos deste email, trazendo os dados do terapeuta relacionado
   const { data: appointments, error } = await supabase
     .from('appointments')
@@ -26,7 +35,8 @@ export default async function JornadaPage() {
       therapists (
         name,
         specialty,
-        photo_url
+        photo_url,
+        whatsapp
       )
     `)
     .eq('client_email', user.email)
@@ -65,6 +75,19 @@ export default async function JornadaPage() {
             <p className="text-slate-400 font-light text-lg">
               Esta é a sua jornada de autoconhecimento e transformação.
             </p>
+          </div>
+
+          <div className="mt-4 md:mt-0 flex flex-col sm:flex-row gap-3 justify-center">
+            {isTherapist && (
+              <Link href="/portal-terapeuta" className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-xl transition-all shadow-[0_0_15px_rgba(16,185,129,0.2)] text-sm flex items-center justify-center">
+                Portal do Terapeuta
+              </Link>
+            )}
+            {user.email === 'brugohb@gmail.com' && (
+              <Link href="/admin" className="px-6 py-3 bg-gold-600 hover:bg-gold-500 text-midnight-950 font-medium rounded-xl transition-all shadow-[0_0_15px_rgba(212,175,55,0.2)] text-sm flex items-center justify-center">
+                Painel Admin
+              </Link>
+            )}
           </div>
         </div>
 
@@ -121,14 +144,23 @@ export default async function JornadaPage() {
                             )}
                           </div>
                         </div>
-                        <a 
-                          href="https://meet.google.com" 
-                          target="_blank" 
-                          rel="noreferrer"
-                          className="flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 rounded-xl transition-colors text-sm font-medium w-full md:w-auto"
-                        >
-                          <Video size={16} /> Entrar na Sala
-                        </a>
+                        {app.therapists?.whatsapp ? (
+                          <a 
+                            href={`https://wa.me/${app.therapists.whatsapp.replace(/\D/g, '')}`} 
+                            target="_blank" 
+                            rel="noreferrer"
+                            className="flex items-center justify-center gap-2 px-5 py-2.5 bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/20 rounded-xl transition-colors text-sm font-medium w-full md:w-auto"
+                          >
+                            <MessageCircle size={16} /> Falar no WhatsApp
+                          </a>
+                        ) : (
+                          <button 
+                            disabled
+                            className="flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-800/50 text-slate-500 border border-white/5 rounded-xl text-sm font-medium w-full md:w-auto cursor-not-allowed"
+                          >
+                            <MessageCircle size={16} /> WhatsApp não cadastrado
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>

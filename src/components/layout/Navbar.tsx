@@ -41,7 +41,7 @@ export default function Navbar({ user }: { user: SupabaseUser | null }) {
             <Link href="/terapeutas" className="hover:text-gold-400 hover:tracking-widest transition-all duration-300">Terapeutas</Link>
             {user && (
               <Link href="/jornada" className="text-gold-400 hover:text-gold-300 hover:tracking-widest transition-all duration-300 flex items-center gap-1.5">
-                <Sparkles size={14} /> Minha Jornada
+                <Sparkles size={14} /> Meu Perfil
               </Link>
             )}
           </nav>
@@ -128,7 +128,7 @@ export default function Navbar({ user }: { user: SupabaseUser | null }) {
               ) : (
                 <Sparkles size={20} />
               )}
-              <span className="text-[10px] font-medium">Jornada</span>
+              <span className="text-[10px] font-medium">Perfil</span>
             </Link>
           ) : (
             <Link 
