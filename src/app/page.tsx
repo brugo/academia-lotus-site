@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/utils/supabase/client";
 import { PageBlock } from "@/lib/types";
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
 import { LotusParallax } from "@/components/ui/LotusParallax";
@@ -11,6 +11,7 @@ export default function Home() {
   const [blocks, setBlocks] = useState<PageBlock[] | null>(null);
 
   useEffect(() => {
+    const supabase = createClient();
     async function fetchActiveBlocks() {
       const { data, error } = await supabase
         .from('page_blocks')

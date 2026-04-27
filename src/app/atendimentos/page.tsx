@@ -13,7 +13,10 @@ const iconMap: Record<string, any> = {
 
 export const dynamic = 'force-dynamic';
 
-export default async function AtendimentosPage() {
+export default async function AtendimentosPage({ searchParams }: { searchParams: Promise<{ terapeuta?: string }> }) {
+  const awaitedParams = await searchParams;
+  const terapeutaId = awaitedParams.terapeuta;
+
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -25,7 +28,22 @@ export default async function AtendimentosPage() {
     .eq("is_active", true)
     .order("order_index", { ascending: true });
     
-  const services = (servicesData as DatabaseService[]) || [];
+  let services = (servicesData as DatabaseService[]) || [];
+  let selectedTherapistName = null;
+
+  if (terapeutaId) {
+    const { data: therapistData } = await supabase
+      .from("therapists")
+      .select("name, supported_services")
+      .eq("id", terapeutaId)
+      .single();
+
+    if (therapistData) {
+      selectedTherapistName = therapistData.name;
+      const supportedSlugs = therapistData.supported_services || [];
+      services = services.filter(service => supportedSlugs.includes(service.slug));
+    }
+  }
 
   const { data: pageBlocksData } = await supabase
     .from('page_blocks')
@@ -45,13 +63,34 @@ export default async function AtendimentosPage() {
       </div>
 
       <div className="container mx-auto px-6 relative z-20">
+        
+        {selectedTherapistName && (
+          <div className="flex justify-center mb-12">
+            <div className="inline-flex items-center gap-4 bg-gold-900/20 border border-gold-500/30 text-gold-200 px-6 py-3 rounded-full shadow-[0_0_20px_rgba(212,175,55,0.1)]">
+              <span className="text-sm">
+                Mostrando especialidades de: <strong>{selectedTherapistName}</strong>
+              </span>
+              <div className="w-[1px] h-4 bg-gold-500/30 mx-2"></div>
+              <Link 
+                href="/atendimentos" 
+                className="text-xs uppercase tracking-wider font-semibold hover:text-white transition-colors flex items-center gap-1 bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-full"
+              >
+                Limpar Filtro
+              </Link>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
           {services.map((service, index) => {
             const Icon = iconMap[service.icon] || FallbackIcon;
+            const linkHref = terapeutaId 
+              ? `/atendimentos/${service.slug}?terapeuta=${terapeutaId}`
+              : `/atendimentos/${service.slug}`;
+
             return (
               <RevealText key={service.id} delay={0.2 + index * 0.1} className={`h-full ${service.is_featured ? 'md:col-span-2 lg:col-span-2' : ''}`}>
-                <Link href={`/atendimentos/${service.slug}`} className="block group h-full bg-midnight-900/40 backdrop-blur-md border border-white/5 rounded-3xl p-8 hover:bg-midnight-800/60 hover:border-gold-500/30 transition-all duration-500 flex flex-col relative overflow-hidden cursor-pointer">
+                <Link href={linkHref} className="block group h-full bg-midnight-900/40 backdrop-blur-md border border-white/5 rounded-3xl p-8 hover:bg-midnight-800/60 hover:border-gold-500/30 transition-all duration-500 flex flex-col relative overflow-hidden cursor-pointer">
                   
                   {/* Decorative Background Image */}
                   {service.image_url && (

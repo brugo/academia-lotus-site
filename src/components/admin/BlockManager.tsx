@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/utils/supabase/client";
 import { Plus, GripVertical, Settings2, Trash2, LayoutTemplate } from "lucide-react";
 import type { PageBlock, BlockType } from "@/lib/types";
 import { BLOCK_TEMPLATES } from "@/lib/types";
 import { BlockEditorModal } from "@/components/admin/BlockEditorModal";
 
 export function BlockManager({ pageRoute = "home" }: { pageRoute?: string }) {
+  const supabase = createClient();
   const [blocks, setBlocks] = useState<PageBlock[]>([]);
   const [loading, setLoading] = useState(true);
   const [draggedIdx, setDraggedIdx] = useState<number | null>(null);

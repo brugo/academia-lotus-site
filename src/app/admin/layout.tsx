@@ -4,7 +4,7 @@ import { AdminGuard } from "@/components/admin/AdminGuard";
 import { LogOut, LayoutDashboard, Component, Settings, Home, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/utils/supabase/client";
 
 export default function AdminLayout({
   children,
@@ -13,6 +13,7 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const supabase = createClient();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();

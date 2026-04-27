@@ -6,8 +6,10 @@ import type { DatabaseService } from "@/lib/types";
 
 export const dynamic = 'force-dynamic';
 
-export default async function AtendimentoPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function AtendimentoPage({ params, searchParams }: { params: Promise<{ slug: string }>, searchParams: Promise<{ terapeuta?: string }> }) {
   const { slug } = await params;
+  const awaitedParams = await searchParams;
+  const terapeutaId = awaitedParams.terapeuta;
   
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -118,7 +120,7 @@ export default async function AtendimentoPage({ params }: { params: Promise<{ sl
                <div className="text-center group">
                  <h2 className="font-serif text-2xl text-white mb-8">Sente o chamado no seu coração?</h2>
                  <Link 
-                    href={`/agendamento?servico=${encodeURIComponent(data.title)}`}
+                    href={`/agendamento?servico=${encodeURIComponent(data.title)}${terapeutaId ? `&terapeutaId=${terapeutaId}` : ''}`}
                     className="inline-flex items-center justify-center gap-3 bg-gradient-to-r from-gold-600 via-gold-500 to-gold-400 text-midnight-950 px-10 py-5 rounded-full font-bold uppercase tracking-widest shadow-[0_0_40px_rgba(212,175,55,0.3)] hover:shadow-[0_0_60px_rgba(212,175,55,0.5)] hover:-translate-y-1 transition-all duration-300"
                   >
                    <CalendarHeart size={20} className="group-hover:scale-110 transition-transform" />

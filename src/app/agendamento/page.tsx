@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 import { createClient } from "@/utils/supabase/server";
 import { BookingFlow } from "@/components/booking/BookingFlow";
 
-export default async function AgendamentoPage({ searchParams }: { searchParams: Promise<{ servico?: string }> }) {
+export default async function AgendamentoPage({ searchParams }: { searchParams: Promise<{ servico?: string, terapeutaId?: string }> }) {
   const awaitedParams = await searchParams;
   const supabase = await createClient();
 
@@ -29,7 +29,12 @@ export default async function AgendamentoPage({ searchParams }: { searchParams: 
           </p>
         </div>
 
-        <BookingFlow initialTherapists={therapists || []} requestedService={awaitedParams.servico} user={user} />
+        <BookingFlow 
+          initialTherapists={therapists || []} 
+          requestedService={awaitedParams.servico} 
+          requestedTherapistId={awaitedParams.terapeutaId}
+          user={user} 
+        />
       </div>
     </main>
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/utils/supabase/client";
 import { UploadCloud, Image as ImageIcon, Loader2, X } from "lucide-react";
 import Image from "next/image";
 
@@ -11,6 +11,7 @@ interface ImageUploaderProps {
 }
 
 export function ImageUploader({ currentImageUrl, onImageUploaded }: ImageUploaderProps) {
+  const supabase = createClient();
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(currentImageUrl || null);
   const fileInputRef = useRef<HTMLInputElement>(null);

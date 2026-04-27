@@ -8,9 +8,10 @@ import { ConfirmationStep } from "./ConfirmationStep";
 
 type Step = 1 | 2 | 3;
 
-export function BookingFlow({ initialTherapists, requestedService, user }: { initialTherapists: any[], requestedService?: string, user?: any }) {
-  const [step, setStep] = useState<Step>(1);
-  const [selectedTherapist, setSelectedTherapist] = useState<any | null>(null);
+export function BookingFlow({ initialTherapists, requestedService, requestedTherapistId, user }: { initialTherapists: any[], requestedService?: string, requestedTherapistId?: string, user?: any }) {
+  const preSelectedTherapist = requestedTherapistId ? initialTherapists.find(t => t.id === requestedTherapistId) : null;
+  const [step, setStep] = useState<Step>(preSelectedTherapist ? 2 : 1);
+  const [selectedTherapist, setSelectedTherapist] = useState<any | null>(preSelectedTherapist || null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   const direction = 1; // Para animações deslizantes

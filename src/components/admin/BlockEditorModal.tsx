@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/utils/supabase/client";
 import { X, Save, RefreshCw, Moon, Leaf, Sun, Star, Heart, Flame, Sparkles, Zap, Eye, Shield, Flower2, TreePine, Wind, Droplets, CloudSun, Plus, Trash2, UploadCloud, Image as ImageIcon, Loader2, Users, Columns2, ArrowUp, ArrowDown, TypeIcon } from "lucide-react";
 import type { PageBlock, BlockType, CardItem, DatabaseTherapist, LightboxBlock } from "@/lib/types";
 import { BLOCK_TEMPLATES } from "@/lib/types";
@@ -37,6 +37,7 @@ const AVAILABLE_PAGES = [
 
 /* ---- Editor individual dos cards ---- */
 function CardItemsEditor({ items, onChange }: { items: CardItem[]; onChange: (items: CardItem[]) => void }) {
+  const supabase = createClient();
   const [activeCard, setActiveCard] = useState(0);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -398,6 +399,7 @@ function LightboxBlocksEditor({
 }
 
 export function BlockEditorModal({ isOpen, onClose, onSave, existingBlock, selectedType, pageRoute = "home" }: BlockEditorModalProps) {
+  const supabase = createClient();
   const [loading, setLoading] = useState(false);
   
   // Form State
