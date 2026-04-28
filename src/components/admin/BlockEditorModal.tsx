@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { X, Save, RefreshCw, Moon, Leaf, Sun, Star, Heart, Flame, Sparkles, Zap, Eye, Shield, Flower2, TreePine, Wind, Droplets, CloudSun, Plus, Trash2, UploadCloud, Image as ImageIcon, Loader2, Users, Columns2, ArrowUp, ArrowDown, TypeIcon } from "lucide-react";
+import { X, Save, RefreshCw, Moon, Leaf, Sun, Star, Heart, Flame, Sparkles, Zap, Eye, Shield, Flower2, TreePine, Wind, Droplets, CloudSun, Plus, Trash2, UploadCloud, Image as ImageIcon, Loader2, Users, Columns2, ArrowUp, ArrowDown, TypeIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import type { PageBlock, BlockType, CardItem, DatabaseTherapist, LightboxBlock } from "@/lib/types";
 import { BLOCK_TEMPLATES } from "@/lib/types";
 import { ImageUploader } from "./ImageUploader";
@@ -190,22 +190,113 @@ function CardItemsEditor({ items, onChange }: { items: CardItem[]; onChange: (it
           <p className="text-[10px] text-slate-500">{currentItem.description.length}/150 caracteres recomendados</p>
         </div>
 
-        {/* Destino (link) */}
+        {/* Ação do card */}
         <div className="space-y-2">
-          <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Redirecionar para</label>
+          <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Ação ao Clicar</label>
           <select
-            value={currentItem.link || "/atendimentos"}
-            onChange={(e) => updateItem(activeCard, "link", e.target.value)}
+            value={currentItem.action_type || "link"}
+            onChange={(e) => updateItem(activeCard, "action_type", e.target.value)}
             className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50 transition-colors appearance-none cursor-pointer"
           >
-            {AVAILABLE_PAGES.map((page) => (
-              <option key={page.value} value={page.value}>
-                {page.label}
-              </option>
-            ))}
+            <option value="link">Redirecionar para uma Página (Link)</option>
+            <option value="lightbox">Abrir Lightbox (Popup Interativo)</option>
           </select>
-          <p className="text-[10px] text-slate-500">Página de destino ao clicar neste card</p>
         </div>
+
+        {/* Destino (link) - apenas quando action_type é link */}
+        {(!currentItem.action_type || currentItem.action_type === "link") && (
+          <div className="space-y-2">
+            <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Redirecionar para</label>
+            <select
+              value={currentItem.link || "/atendimentos"}
+              onChange={(e) => updateItem(activeCard, "link", e.target.value)}
+              className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50 transition-colors appearance-none cursor-pointer"
+            >
+              {AVAILABLE_PAGES.map((page) => (
+                <option key={page.value} value={page.value}>
+                  {page.label}
+                </option>
+              ))}
+            </select>
+            <p className="text-[10px] text-slate-500">Página de destino ao clicar neste card</p>
+          </div>
+        )}
+
+        {/* Lightbox config - apenas quando action_type é lightbox */}
+        {currentItem.action_type === "lightbox" && (
+          <div className="space-y-4 bg-gold-500/5 border border-gold-500/10 rounded-xl p-4">
+            <div className="space-y-2">
+              <label className="text-[10px] font-medium tracking-widest text-gold-400 uppercase">Conteúdo do Lightbox</label>
+              <select
+                value={currentItem.lightbox_type || "text"}
+                onChange={(e) => updateItem(activeCard, "lightbox_type", e.target.value)}
+                className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50 appearance-none cursor-pointer"
+              >
+                <option value="text">Apenas Texto</option>
+                <option value="image_text">Imagem + Texto</option>
+                <option value="video">Vídeo do YouTube</option>
+                <option value="custom_blocks">Narrativa Avançada (Textos + Múltiplas Imagens)</option>
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Título do Lightbox</label>
+              <input
+                type="text"
+                value={currentItem.lightbox_title || ""}
+                onChange={(e) => updateItem(activeCard, "lightbox_title", e.target.value)}
+                placeholder="Título exibido no popup"
+                className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50"
+              />
+            </div>
+
+            {(!currentItem.lightbox_type || currentItem.lightbox_type === "text" || currentItem.lightbox_type === "image_text") && (
+              <div className="space-y-2">
+                <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Texto do Lightbox</label>
+                <textarea
+                  value={currentItem.lightbox_text || ""}
+                  onChange={(e) => updateItem(activeCard, "lightbox_text", e.target.value)}
+                  placeholder="Conteúdo textual do popup..."
+                  rows={4}
+                  className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50 resize-none"
+                />
+              </div>
+            )}
+
+            {currentItem.lightbox_type === "image_text" && (
+              <div className="space-y-2">
+                <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Imagem do Lightbox</label>
+                <ImageUploader
+                  currentImageUrl={currentItem.lightbox_image_url || null}
+                  onImageUploaded={(url) => updateItem(activeCard, "lightbox_image_url", url || undefined)}
+                />
+              </div>
+            )}
+
+            {currentItem.lightbox_type === "video" && (
+              <div className="space-y-2">
+                <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">URL do Vídeo (YouTube Embed)</label>
+                <input
+                  type="text"
+                  value={currentItem.lightbox_video_url || ""}
+                  onChange={(e) => updateItem(activeCard, "lightbox_video_url", e.target.value)}
+                  placeholder="https://www.youtube.com/embed/..."
+                  className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50"
+                />
+              </div>
+            )}
+
+            {currentItem.lightbox_type === "custom_blocks" && (
+              <div className="space-y-2">
+                <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Editor de Blocos Livres</label>
+                <LightboxBlocksEditor
+                  blocks={(currentItem.lightbox_blocks as any) || []}
+                  onChange={(newBlocks) => updateItem(activeCard, "lightbox_blocks", newBlocks as any)}
+                />
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Imagem de fundo do card */}
         <div className="space-y-2">

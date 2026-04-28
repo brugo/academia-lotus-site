@@ -74,7 +74,15 @@ export interface CardItem {
   description: string;
   link: string;   // destination page path e.g. "/atendimentos"
   image_url?: string; // optional background image
+  action_type?: 'link' | 'lightbox';
+  lightbox_type?: 'text' | 'image_text' | 'video' | 'custom_blocks';
+  lightbox_title?: string;
+  lightbox_text?: string;
+  lightbox_image_url?: string;
+  lightbox_video_url?: string;
+  lightbox_blocks?: LightboxBlock[];
 }
+
 
 export interface CardSimplesContent {
   title: string;
