@@ -2,7 +2,8 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
 import { format, isAfter, isBefore } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
-import { Calendar, Clock, User as UserIcon, LogOut, MessageCircle, Sparkles } from 'lucide-react';
+import { Calendar, Clock, User as UserIcon, LogOut, MessageCircle, Sparkles, Settings } from 'lucide-react';
+import Link from 'next/link';
 
 export const metadata = {
   title: 'Portal do Terapeuta - Academia Lótus',
@@ -84,11 +85,19 @@ export default async function PortalTerapeutaPage() {
             </p>
           </div>
           
-          <form action="/auth/signout" method="POST" className="mt-4 md:mt-0">
-            <button className="flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl transition-colors text-sm font-medium border border-red-500/20">
-              <LogOut size={16} /> Sair
-            </button>
-          </form>
+          <div className="mt-4 md:mt-0 flex flex-col sm:flex-row gap-3">
+            <Link
+              href="/portal-terapeuta/configuracoes"
+              className="flex items-center gap-2 px-5 py-2.5 bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 rounded-xl transition-all text-sm font-medium border border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.1)]"
+            >
+              <Settings size={16} /> Configurações
+            </Link>
+            <form action="/auth/signout" method="POST">
+              <button className="flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl transition-colors text-sm font-medium border border-red-500/20">
+                <LogOut size={16} /> Sair
+              </button>
+            </form>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">

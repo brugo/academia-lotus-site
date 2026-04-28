@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { calendar } from "@/lib/google-calendar";
 import { startOfDay, addDays, endOfDay } from "date-fns";
+import { createClient } from "@/utils/supabase/server";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const therapistEmail = searchParams.get('email');
+  const therapistId = searchParams.get('therapist_id');
   const startParam = searchParams.get('start');
   const endParam = searchParams.get('end');
 
@@ -18,7 +20,6 @@ export async function GET(request: Request) {
     const timeMax = endParam ? new Date(endParam) : endOfDay(addDays(new Date(), 14));
 
     // A API Free/Busy do Google nos retorna onde a agenda está OCUPADA.
-    // O Frontend vai pegar o ocupado e inverter para mostrar os buracos livres.
     const response = await calendar.freebusy.query({
       requestBody: {
         timeMin: timeMin.toISOString(),
@@ -30,9 +31,26 @@ export async function GET(request: Request) {
 
     const busySlots = response.data.calendars?.[therapistEmail]?.busy || [];
 
+    // Buscar regras de disponibilidade do terapeuta no Supabase
+    let availabilityRules: any[] = [];
+    if (therapistId) {
+      try {
+        const supabase = await createClient();
+        const { data } = await supabase
+          .from("therapist_availability")
+          .select("*")
+          .eq("therapist_id", therapistId);
+        availabilityRules = data || [];
+      } catch (dbError) {
+        console.error("Erro ao buscar regras de disponibilidade:", dbError);
+        // Não falha o request inteiro se o DB falhar
+      }
+    }
+
     return NextResponse.json({ 
       success: true, 
       busySlots,
+      availabilityRules,
       timeMin,
       timeMax
     });
