@@ -59,7 +59,7 @@ export default async function JornadaPage() {
         <div className="flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8 mb-16 pt-8">
           <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-2 border-gold-500/30 shadow-[0_0_30px_rgba(212,175,55,0.15)] flex-shrink-0 bg-midnight-900 flex items-center justify-center">
             {user.user_metadata?.avatar_url ? (
-              <img src={user.user_metadata.avatar_url} alt={user.user_metadata?.full_name || 'Usuário'} className="w-full h-full object-cover" />
+              <img src={user.user_metadata.avatar_url} alt={user.user_metadata?.full_name || 'Usuário'} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
             ) : (
               <UserIcon size={48} className="text-gold-400/50" />
             )}
@@ -138,7 +138,7 @@ export default async function JornadaPage() {
                           <img src={app.therapists?.photo_url || '/placeholder.png'} alt="Terapeuta" className="w-12 h-12 rounded-full border-2 border-midnight-950 object-cover relative z-10" />
                           <div className="w-12 h-12 rounded-full border-2 border-midnight-950 bg-gold-900/50 flex items-center justify-center text-gold-400 relative z-0">
                             {user.user_metadata?.avatar_url ? (
-                              <img src={user.user_metadata.avatar_url} className="w-full h-full rounded-full object-cover opacity-80" alt="" />
+                              <img src={user.user_metadata.avatar_url} className="w-full h-full rounded-full object-cover opacity-80" alt="" referrerPolicy="no-referrer" />
                             ) : (
                               <UserIcon size={16} />
                             )}

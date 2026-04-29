@@ -295,6 +295,46 @@ function CardItemsEditor({ items, onChange }: { items: CardItem[]; onChange: (it
                 />
               </div>
             )}
+
+            <div className="space-y-3 pt-4 border-t border-gold-500/10 mt-4">
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <div className={`w-8 h-4 rounded-full transition-colors relative ${currentItem.lightbox_show_button ? 'bg-gold-500' : 'bg-midnight-700'}`}>
+                  <div className={`absolute top-0.5 left-0.5 w-3 h-3 rounded-full bg-white transition-transform ${currentItem.lightbox_show_button ? 'translate-x-4' : ''}`} />
+                </div>
+                <input 
+                  type="checkbox" 
+                  className="hidden" 
+                  checked={currentItem.lightbox_show_button || false} 
+                  onChange={(e) => updateItem(activeCard, "lightbox_show_button", e.target.checked as any)} 
+                />
+                <span className="text-xs font-medium text-slate-300 group-hover:text-white transition-colors">
+                  Adicionar botão de Ação no Lightbox
+                </span>
+              </label>
+
+              {currentItem.lightbox_show_button && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Texto do Botão</label>
+                    <input
+                      type="text"
+                      value={currentItem.lightbox_button_text || ''}
+                      onChange={(e) => updateItem(activeCard, "lightbox_button_text", e.target.value)}
+                      className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Link de Destino</label>
+                    <input
+                      type="text"
+                      value={currentItem.lightbox_button_link || ''}
+                      onChange={(e) => updateItem(activeCard, "lightbox_button_link", e.target.value)}
+                      className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -770,6 +810,31 @@ export function BlockEditorModal({ isOpen, onClose, onSave, existingBlock, selec
                   if (field === 'lightbox_video_url' && content.lightbox_type !== 'video') return null;
                   if (field === 'lightbox_text' && (content.lightbox_type === 'video' || content.lightbox_type === 'custom_blocks')) return null;
 
+                  if (field === 'lightbox_show_button') {
+                    return (
+                      <div key={field} className="space-y-3 mt-4 border-t border-white/5 pt-4">
+                        <label className="flex items-center gap-3 cursor-pointer group">
+                          <div className={`w-8 h-4 rounded-full transition-colors relative ${content[field] ? 'bg-gold-500' : 'bg-midnight-700'}`}>
+                            <div className={`absolute top-0.5 left-0.5 w-3 h-3 rounded-full bg-white transition-transform ${content[field] ? 'translate-x-4' : ''}`} />
+                          </div>
+                          <input 
+                            type="checkbox" 
+                            className="hidden" 
+                            checked={content[field] as boolean} 
+                            onChange={(e) => setContent({ ...content, [field]: e.target.checked })} 
+                          />
+                          <span className="text-xs font-medium text-slate-300 group-hover:text-white transition-colors">
+                            Adicionar botão de Ação no Lightbox
+                          </span>
+                        </label>
+                      </div>
+                    );
+                  }
+                  
+                  if (field === 'lightbox_button_text' || field === 'lightbox_button_link') {
+                    if (!content.lightbox_show_button) return null;
+                  }
+
                   // Let it fallthrough to standard inputs, just correct the label
                 }
 
@@ -917,112 +982,220 @@ export function BlockEditorModal({ isOpen, onClose, onSave, existingBlock, selec
                         />
                       </div>
 
-                      <div className="space-y-2 mt-4 border-t border-white/5 pt-4">
-                        <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">
-                          Ação ao clicar no card
-                        </label>
-                        <select
-                          value={cardData.action_type || 'link'}
-                          onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, action_type: e.target.value }})}
-                          className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50 appearance-none cursor-pointer"
-                        >
-                          <option value="link">Redirecionar para um Link</option>
-                          <option value="lightbox">Abrir Lightbox (Popup na tela)</option>
-                        </select>
+                      <div className="space-y-4 mt-4 border-t border-white/5 pt-4">
+                        <h4 className="text-sm font-medium text-slate-300">Configuração de Botões</h4>
+                        
+                        {/* Botão 1 */}
+                        <div className="space-y-3 bg-black/20 p-4 rounded-xl border border-white/5">
+                          <label className="flex items-center gap-3 cursor-pointer group">
+                            <div className={`w-10 h-5 rounded-full transition-colors relative ${cardData.show_button1 ? 'bg-gold-500' : 'bg-midnight-700'}`}>
+                              <div className={`absolute top-1 left-1 w-3 h-3 rounded-full bg-white transition-transform ${cardData.show_button1 ? 'translate-x-5' : ''}`} />
+                            </div>
+                            <input 
+                              type="checkbox" 
+                              className="hidden" 
+                              checked={cardData.show_button1 || false} 
+                              onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, show_button1: e.target.checked }})} 
+                            />
+                            <span className="text-sm font-medium text-slate-300 group-hover:text-white transition-colors">
+                              Exibir Botão Primário (Link de Compra/Página)
+                            </span>
+                          </label>
+                          
+                          {cardData.show_button1 && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                              <div className="space-y-2">
+                                <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Texto do Botão 1</label>
+                                <input
+                                  type="text"
+                                  value={cardData.button1_text || ''}
+                                  placeholder="Ex: Adquirir Curso"
+                                  onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, button1_text: e.target.value }})}
+                                  className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Link de Destino 1</label>
+                                <input
+                                  type="text"
+                                  value={cardData.button1_link || ''}
+                                  placeholder="Ex: https://hotmart.com/..."
+                                  onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, button1_link: e.target.value }})}
+                                  className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50"
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Botão 2 */}
+                        <div className="space-y-3 bg-black/20 p-4 rounded-xl border border-white/5">
+                          <label className="flex items-center gap-3 cursor-pointer group">
+                            <div className={`w-10 h-5 rounded-full transition-colors relative ${cardData.show_button2 ? 'bg-gold-500' : 'bg-midnight-700'}`}>
+                              <div className={`absolute top-1 left-1 w-3 h-3 rounded-full bg-white transition-transform ${cardData.show_button2 ? 'translate-x-5' : ''}`} />
+                            </div>
+                            <input 
+                              type="checkbox" 
+                              className="hidden" 
+                              checked={cardData.show_button2 || false} 
+                              onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, show_button2: e.target.checked }})} 
+                            />
+                            <span className="text-sm font-medium text-slate-300 group-hover:text-white transition-colors">
+                              Exibir Botão Secundário (Detalhes/Lightbox)
+                            </span>
+                          </label>
+
+                          {cardData.show_button2 && (
+                            <div className="space-y-4 mt-2">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Texto do Botão 2</label>
+                                  <input
+                                    type="text"
+                                    value={cardData.button2_text || ''}
+                                    placeholder="Ex: Ver Detalhes"
+                                    onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, button2_text: e.target.value }})}
+                                    className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50"
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Ação do Botão 2</label>
+                                  <select
+                                    value={cardData.button2_action || 'lightbox'}
+                                    onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, button2_action: e.target.value }})}
+                                    className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50 appearance-none cursor-pointer"
+                                  >
+                                    <option value="lightbox">Abrir Lightbox (Popup na tela)</option>
+                                    <option value="link">Redirecionar para um Link</option>
+                                  </select>
+                                </div>
+                              </div>
+
+                              {cardData.button2_action === 'link' ? (
+                                <div className="space-y-2">
+                                  <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Link de Destino 2</label>
+                                  <input
+                                    type="text"
+                                    value={cardData.button2_link || ''}
+                                    onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, button2_link: e.target.value }})}
+                                    className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50"
+                                  />
+                                </div>
+                              ) : (
+                                <div className="space-y-4 bg-black/20 p-4 rounded-xl border border-gold-500/10 mt-2">
+                                  <div className="space-y-2">
+                                    <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Tipo de Lightbox</label>
+                                    <select
+                                      value={cardData.lightbox_type || 'text'}
+                                      onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, lightbox_type: e.target.value }})}
+                                      className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50 appearance-none cursor-pointer"
+                                    >
+                                      <option value="text">Apenas Texto</option>
+                                      <option value="image_text">Imagem + Texto</option>
+                                      <option value="video">Vídeo do YouTube</option>
+                                      <option value="custom_blocks">Narrativa Avançada (Textos + Múltiplas Imagens)</option>
+                                    </select>
+                                  </div>
+
+                                  <div className="space-y-2">
+                                    <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Título do Lightbox</label>
+                                    <input
+                                      type="text"
+                                      value={cardData.lightbox_title || ''}
+                                      onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, lightbox_title: e.target.value }})}
+                                      className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50"
+                                    />
+                                  </div>
+
+                                  {cardData.lightbox_type !== 'video' && cardData.lightbox_type !== 'custom_blocks' && (
+                                    <div className="space-y-2">
+                                      <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Texto Informativo</label>
+                                      <textarea
+                                        value={cardData.lightbox_text || ''}
+                                        onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, lightbox_text: e.target.value }})}
+                                        className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50 min-h-[100px]"
+                                      />
+                                    </div>
+                                  )}
+
+                                  {cardData.lightbox_type === 'image_text' && (
+                                    <div className="space-y-3 pt-2">
+                                      <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Imagem do Lightbox</label>
+                                      <ImageUploader 
+                                        currentImageUrl={cardData.lightbox_image_url || null} 
+                                        onImageUploaded={(url) => setContent({ ...content, [cardKey]: { ...cardData, lightbox_image_url: url }})} 
+                                      />
+                                    </div>
+                                  )}
+
+                                  {cardData.lightbox_type === 'video' && (
+                                    <div className="space-y-2 pt-2">
+                                      <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Link do YouTube (Embed)</label>
+                                      <input
+                                        type="text"
+                                        value={cardData.lightbox_video_url || ''}
+                                        placeholder="Ex: https://www.youtube.com/embed/XXXXX"
+                                        onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, lightbox_video_url: e.target.value }})}
+                                        className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50"
+                                      />
+                                    </div>
+                                  )}
+
+                                  {cardData.lightbox_type === 'custom_blocks' && (
+                                    <div className="space-y-2 pt-2 border-t border-white/5">
+                                      <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Editor de Blocos Livres</label>
+                                      <LightboxBlocksEditor 
+                                        blocks={(cardData.lightbox_blocks as LightboxBlock[]) || []}
+                                        onChange={(newBlocks) => setContent({ ...content, [cardKey]: { ...cardData, lightbox_blocks: newBlocks }})}
+                                      />
+                                    </div>
+                                  )}
+
+                                  <div className="space-y-3 pt-4 border-t border-gold-500/10 mt-4">
+                                    <label className="flex items-center gap-3 cursor-pointer group">
+                                      <div className={`w-8 h-4 rounded-full transition-colors relative ${cardData.lightbox_show_button ? 'bg-gold-500' : 'bg-midnight-700'}`}>
+                                        <div className={`absolute top-0.5 left-0.5 w-3 h-3 rounded-full bg-white transition-transform ${cardData.lightbox_show_button ? 'translate-x-4' : ''}`} />
+                                      </div>
+                                      <input 
+                                        type="checkbox" 
+                                        className="hidden" 
+                                        checked={cardData.lightbox_show_button || false} 
+                                        onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, lightbox_show_button: e.target.checked }})} 
+                                      />
+                                      <span className="text-xs font-medium text-slate-300 group-hover:text-white transition-colors">
+                                        Adicionar botão de Ação no Lightbox
+                                      </span>
+                                    </label>
+
+                                    {cardData.lightbox_show_button && (
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                                        <div className="space-y-2">
+                                          <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Texto do Botão</label>
+                                          <input
+                                            type="text"
+                                            value={cardData.lightbox_button_text || ''}
+                                            onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, lightbox_button_text: e.target.value }})}
+                                            className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50"
+                                          />
+                                        </div>
+                                        <div className="space-y-2">
+                                          <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Link de Destino</label>
+                                          <input
+                                            type="text"
+                                            value={cardData.lightbox_button_link || ''}
+                                            onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, lightbox_button_link: e.target.value }})}
+                                            className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50"
+                                          />
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
-
-                      {(!cardData.action_type || cardData.action_type === 'link') ? (
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Texto do Botão (Opcional)</label>
-                            <input
-                              type="text"
-                              value={cardData.button_text || ''}
-                              onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, button_text: e.target.value }})}
-                              className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Link de Destino</label>
-                            <input
-                              type="text"
-                              value={cardData.button_link || ''}
-                              onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, button_link: e.target.value }})}
-                              className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50"
-                            />
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="space-y-4 bg-black/20 p-4 rounded-xl border border-gold-500/10">
-                          <div className="space-y-2">
-                            <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Tipo de Lightbox</label>
-                            <select
-                              value={cardData.lightbox_type || 'text'}
-                              onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, lightbox_type: e.target.value }})}
-                              className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50 appearance-none cursor-pointer"
-                            >
-                              <option value="text">Apenas Texto</option>
-                              <option value="image_text">Imagem + Texto</option>
-                              <option value="video">Vídeo do YouTube</option>
-                              <option value="custom_blocks">Narrativa Avançada (Textos + Múltiplas Imagens)</option>
-                            </select>
-                          </div>
-
-                          <div className="space-y-2">
-                            <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Título do Lightbox</label>
-                            <input
-                              type="text"
-                              value={cardData.lightbox_title || ''}
-                              onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, lightbox_title: e.target.value }})}
-                              className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50"
-                            />
-                          </div>
-
-                          {cardData.lightbox_type !== 'video' && cardData.lightbox_type !== 'custom_blocks' && (
-                            <div className="space-y-2">
-                              <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Texto Informativo</label>
-                              <textarea
-                                value={cardData.lightbox_text || ''}
-                                onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, lightbox_text: e.target.value }})}
-                                className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50 min-h-[100px]"
-                              />
-                            </div>
-                          )}
-
-                          {cardData.lightbox_type === 'image_text' && (
-                            <div className="space-y-3 pt-2">
-                              <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Imagem do Lightbox</label>
-                              <ImageUploader 
-                                currentImageUrl={cardData.lightbox_image_url || null} 
-                                onImageUploaded={(url) => setContent({ ...content, [cardKey]: { ...cardData, lightbox_image_url: url }})} 
-                              />
-                            </div>
-                          )}
-
-                          {cardData.lightbox_type === 'video' && (
-                            <div className="space-y-2 pt-2">
-                              <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Link do YouTube (Embed)</label>
-                              <input
-                                type="text"
-                                value={cardData.lightbox_video_url || ''}
-                                placeholder="Ex: https://www.youtube.com/embed/XXXXX"
-                                onChange={(e) => setContent({ ...content, [cardKey]: { ...cardData, lightbox_video_url: e.target.value }})}
-                                className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50"
-                              />
-                            </div>
-                          )}
-
-                          {cardData.lightbox_type === 'custom_blocks' && (
-                            <div className="space-y-2 pt-2 border-t border-white/5">
-                              <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">Editor de Blocos Livres</label>
-                              <LightboxBlocksEditor 
-                                blocks={(cardData.lightbox_blocks as LightboxBlock[]) || []}
-                                onChange={(newBlocks) => setContent({ ...content, [cardKey]: { ...cardData, lightbox_blocks: newBlocks }})}
-                              />
-                            </div>
-                          )}
-                        </div>
-                      )}
 
                     </div>
                   </div>

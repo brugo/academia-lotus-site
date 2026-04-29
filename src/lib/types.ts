@@ -81,6 +81,9 @@ export interface CardItem {
   lightbox_image_url?: string;
   lightbox_video_url?: string;
   lightbox_blocks?: LightboxBlock[];
+  lightbox_show_button?: boolean;
+  lightbox_button_text?: string;
+  lightbox_button_link?: string;
 }
 
 
@@ -156,21 +159,34 @@ export interface DestaqueContent {
   lightbox_image_url?: string;
   lightbox_video_url?: string;
   lightbox_blocks?: LightboxBlock[];
+  lightbox_show_button?: boolean;
+  lightbox_button_text?: string;
+  lightbox_button_link?: string;
 }
 
 export interface DuploCardItem {
   image_url: string | null;
   title: string;
   description: string;
-  button_text: string;
-  button_link: string;
+  button_text?: string;
+  button_link?: string;
   action_type?: 'link' | 'lightbox';
+  show_button1?: boolean;
+  button1_text?: string;
+  button1_link?: string;
+  show_button2?: boolean;
+  button2_text?: string;
+  button2_action?: 'link' | 'lightbox';
+  button2_link?: string;
   lightbox_type?: 'text' | 'image_text' | 'video' | 'custom_blocks';
   lightbox_title?: string;
   lightbox_text?: string;
   lightbox_image_url?: string;
   lightbox_video_url?: string;
   lightbox_blocks?: LightboxBlock[];
+  lightbox_show_button?: boolean;
+  lightbox_button_text?: string;
+  lightbox_button_link?: string;
 }
 
 export interface DuploCardContent {
@@ -306,12 +322,15 @@ export const BLOCK_TEMPLATES: Record<BlockType, { label: string; icon: string; d
         description: 'A formação completa para você se tornar um facilitador desta egrégora.',
         button_text: 'Ver Ementa',
         button_link: '/cursos',
-        action_type: 'link',
+        action_type: 'lightbox',
         lightbox_type: 'text',
         lightbox_title: 'Mesa Radiônica de Lótus',
         lightbox_text: 'Detalhes da ementa deste curso maravilhoso.',
         lightbox_image_url: '',
         lightbox_video_url: '',
+        lightbox_show_button: false,
+        lightbox_button_text: 'Adquirir',
+        lightbox_button_link: '#'
       },
       card2: {
         image_url: null,

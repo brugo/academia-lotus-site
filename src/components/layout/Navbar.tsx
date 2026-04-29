@@ -51,7 +51,7 @@ export default function Navbar({ user }: { user: SupabaseUser | null }) {
             <div className="hidden md:flex items-center gap-4">
               <Link href="/jornada" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                 {user.user_metadata?.avatar_url ? (
-                  <img src={user.user_metadata.avatar_url} alt="Avatar" className="w-8 h-8 rounded-full border border-gold-500/30 object-cover" />
+                  <img src={user.user_metadata.avatar_url} alt="Avatar" className="w-8 h-8 rounded-full border border-gold-500/30 object-cover" referrerPolicy="no-referrer" />
                 ) : (
                   <div className="w-8 h-8 rounded-full bg-gold-900/50 flex items-center justify-center border border-gold-500/30 text-gold-400">
                     <User size={14} />
@@ -124,7 +124,7 @@ export default function Navbar({ user }: { user: SupabaseUser | null }) {
               }`}
             >
               {user.user_metadata?.avatar_url ? (
-                <img src={user.user_metadata.avatar_url} alt="Avatar" className="w-5 h-5 rounded-full border border-gold-500/50 object-cover" />
+                <img src={user.user_metadata.avatar_url} alt="Avatar" className="w-5 h-5 rounded-full border border-gold-500/50 object-cover" referrerPolicy="no-referrer" />
               ) : (
                 <Sparkles size={20} />
               )}

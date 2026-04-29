@@ -38,35 +38,108 @@ export function DuploCardBlock({ block }: { block: PageBlock }) {
     if (card.action_type === 'lightbox') {
       setOpenLightboxId(id);
     } else {
-      router.push(card.button_link || '#');
+      const link = card.button_link || '#';
+      if (link.startsWith('http')) {
+        window.open(link, '_blank', 'noopener,noreferrer');
+      } else {
+        router.push(link);
+      }
     }
   };
 
-  const renderCardInner = (card: DuploCardItem) => (
-    <>
-      {/* Background image overlay with purple vibe */}
-      {card.image_url && (
-        <div className="absolute inset-0 z-0 overflow-hidden rounded-3xl">
-          <img src={card.image_url} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-overlay group-hover:opacity-40 transition-all duration-700 group-hover:scale-105" />
-          <div className="absolute inset-0 bg-purple-900/40 mix-blend-color pointer-events-none" />
-          <div className="absolute inset-0 bg-gradient-to-t from-midnight-900 via-midnight-900/60 to-transparent pointer-events-none" />
-        </div>
-      )}
-      
-      <div className="relative z-10 flex flex-col h-full pointer-events-none">
-        <h3 className="font-serif text-2xl text-slate-200 mb-4">{card.title}</h3>
-        <p className="text-slate-400 font-light leading-relaxed flex-grow mb-8 text-lg">
-          {card.description}
-        </p>
-        
-        {card.button_text && (
-          <div className="text-gold-500 font-medium tracking-wider flex items-center gap-2 group-hover:text-gold-400 transition-colors uppercase text-xs self-start mt-auto">
-            {card.button_text} <MoveRight size={16} />
+  const renderCard = (card: DuploCardItem, id: 1 | 2) => {
+    const hasNewButtons = card.show_button1 || card.show_button2;
+    
+    return (
+      <div className="w-full text-left h-full bg-midnight-900/30 backdrop-blur-md border border-white/5 rounded-3xl p-10 hover:border-gold-500/30 transition-all duration-500 flex flex-col group relative overflow-hidden focus-within:ring-2 focus-within:ring-gold-500/50">
+        {/* Background image overlay with purple vibe */}
+        {card.image_url && (
+          <div className="absolute inset-0 z-0 overflow-hidden rounded-3xl pointer-events-none">
+            <img src={card.image_url} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-overlay group-hover:opacity-40 transition-all duration-700 group-hover:scale-105" />
+            <div className="absolute inset-0 bg-purple-900/40 mix-blend-color pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-t from-midnight-900 via-midnight-900/60 to-transparent pointer-events-none" />
           </div>
         )}
+        
+        {!hasNewButtons && (
+          <button 
+            className="absolute inset-0 z-10 cursor-pointer w-full h-full outline-none focus:outline-none"
+            onClick={() => handleCardClick(card, id)}
+            aria-label={card.title}
+          />
+        )}
+        
+        <div className={`relative z-20 flex flex-col h-full ${!hasNewButtons ? 'pointer-events-none' : ''}`}>
+          <h3 className="font-serif text-2xl text-slate-200 mb-4">{card.title}</h3>
+          <p className="text-slate-400 font-light leading-relaxed flex-grow mb-8 text-lg">
+            {card.description}
+          </p>
+          
+          {hasNewButtons ? (
+            <div className="flex flex-col sm:flex-row items-center gap-4 mt-auto w-full">
+              {card.show_button1 && card.button1_text && (
+                card.button1_link?.startsWith('http') ? (
+                  <a 
+                    href={card.button1_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-gold-600 to-gold-500 text-midnight-950 rounded-full hover:from-gold-500 hover:to-gold-400 transition-all shadow-[0_0_15px_rgba(212,175,55,0.2)] font-medium tracking-wide flex items-center justify-center gap-2 text-sm"
+                  >
+                    {card.button1_text}
+                    <MoveRight size={16} />
+                  </a>
+                ) : (
+                  <Link 
+                    href={card.button1_link || '#'}
+                    className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-gold-600 to-gold-500 text-midnight-950 rounded-full hover:from-gold-500 hover:to-gold-400 transition-all shadow-[0_0_15px_rgba(212,175,55,0.2)] font-medium tracking-wide flex items-center justify-center gap-2 text-sm"
+                  >
+                    {card.button1_text}
+                    <MoveRight size={16} />
+                  </Link>
+                )
+              )}
+              {card.show_button2 && card.button2_text && (
+                <>
+                  {card.button2_action === 'link' ? (
+                    card.button2_link?.startsWith('http') ? (
+                      <a 
+                        href={card.button2_link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full sm:w-auto px-6 py-3 bg-transparent border border-white/20 text-white rounded-full hover:bg-white/5 transition-all text-sm tracking-wide text-center block"
+                      >
+                        {card.button2_text}
+                      </a>
+                    ) : (
+                      <Link 
+                        href={card.button2_link || '#'}
+                        className="w-full sm:w-auto px-6 py-3 bg-transparent border border-white/20 text-white rounded-full hover:bg-white/5 transition-all text-sm tracking-wide text-center"
+                      >
+                        {card.button2_text}
+                      </Link>
+                    )
+                  ) : (
+                    <button 
+                      onClick={() => setOpenLightboxId(id)}
+                      className="w-full sm:w-auto px-6 py-3 bg-transparent border border-white/20 text-white rounded-full hover:bg-white/5 transition-all text-sm tracking-wide text-center"
+                    >
+                      {card.button2_text}
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
+          ) : (
+            card.button_text && (
+              <div className="text-gold-500 font-medium tracking-wider flex items-center gap-2 group-hover:text-gold-400 transition-colors uppercase text-xs self-start mt-auto">
+                {card.button_text} <MoveRight size={16} />
+              </div>
+            )
+          )}
+        </div>
       </div>
-    </>
-  );
+    );
+  };
 
   const activeCard = openLightboxId === 1 ? card1 : openLightboxId === 2 ? card2 : null;
 
@@ -75,21 +148,11 @@ export function DuploCardBlock({ block }: { block: PageBlock }) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
         
         <RevealText delay={0.2} className="h-full">
-          <button 
-            onClick={() => handleCardClick(card1, 1)}
-            className="w-full text-left h-full bg-midnight-900/30 backdrop-blur-md border border-white/5 rounded-3xl p-10 hover:border-gold-500/30 transition-all duration-500 flex flex-col group relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-gold-500/50"
-          >
-            {renderCardInner(card1)}
-          </button>
+          {renderCard(card1, 1)}
         </RevealText>
 
         <RevealText delay={0.4} className="h-full">
-          <button 
-            onClick={() => handleCardClick(card2, 2)}
-            className="w-full text-left h-full bg-midnight-900/30 backdrop-blur-md border border-white/5 rounded-3xl p-10 hover:border-gold-500/30 transition-all duration-500 flex flex-col group relative overflow-hidden focus:outline-none focus:ring-2 focus:ring-gold-500/50"
-          >
-            {renderCardInner(card2)}
-          </button>
+          {renderCard(card2, 2)}
         </RevealText>
 
       </div>
@@ -193,7 +256,7 @@ export function DuploCardBlock({ block }: { block: PageBlock }) {
 
               {/* === NARRATIVA AVANÇADA (CUSTOM BLOCKS) === */}
               {activeCard.lightbox_type === 'custom_blocks' && (
-                <div className="p-8 md:p-14 relative pb-24">
+                <div className="p-8 md:p-14 relative pb-12">
                   {activeCard.lightbox_title && (
                     <h3 className="font-serif text-3xl md:text-4xl text-gold-400 mb-10 border-b border-gold-500/10 pb-6 relative inline-block">
                       {activeCard.lightbox_title}
@@ -220,6 +283,33 @@ export function DuploCardBlock({ block }: { block: PageBlock }) {
                       <p className="text-slate-500 italic font-light">Nenhum conteúdo adicionado nesta narrativa.</p>
                     )}
                   </div>
+                </div>
+              )}
+
+              {/* === BOTAO EXTRA DO LIGHTBOX === */}
+              {activeCard.lightbox_show_button && activeCard.lightbox_button_text && (
+                <div className="p-8 md:px-14 md:py-10 flex justify-center border-t border-white/5 bg-midnight-950/50 mt-auto">
+                  {activeCard.lightbox_button_link?.startsWith('http') ? (
+                    <a 
+                      href={activeCard.lightbox_button_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => setOpenLightboxId(null)}
+                      className="px-10 py-4 bg-gradient-to-r from-gold-600 to-gold-500 text-midnight-950 rounded-full hover:from-gold-500 hover:to-gold-400 transition-all shadow-[0_0_20px_rgba(212,175,55,0.25)] font-semibold tracking-wide flex items-center gap-3 text-lg"
+                    >
+                      {activeCard.lightbox_button_text}
+                      <MoveRight size={20} />
+                    </a>
+                  ) : (
+                    <Link 
+                      href={activeCard.lightbox_button_link || '#'}
+                      onClick={() => setOpenLightboxId(null)}
+                      className="px-10 py-4 bg-gradient-to-r from-gold-600 to-gold-500 text-midnight-950 rounded-full hover:from-gold-500 hover:to-gold-400 transition-all shadow-[0_0_20px_rgba(212,175,55,0.25)] font-semibold tracking-wide flex items-center gap-3 text-lg"
+                    >
+                      {activeCard.lightbox_button_text}
+                      <MoveRight size={20} />
+                    </Link>
+                  )}
                 </div>
               )}
 

@@ -69,13 +69,25 @@ export function DestaqueBlock({ block }: { block: PageBlock }) {
             {(content.show_button1 || content.show_button2) && (
               <div className="flex flex-col sm:flex-row items-center gap-4">
                 {content.show_button1 && content.button1_text && (
-                  <Link 
-                    href={content.button1_link || '#'}
-                    className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-gold-600 to-gold-500 text-midnight-950 rounded-full hover:from-gold-500 hover:to-gold-400 transition-all shadow-[0_0_20px_rgba(212,175,55,0.3)] font-medium tracking-wide flex items-center justify-center gap-2"
-                  >
-                    {content.button1_text}
-                    <MoveRight size={18} />
-                  </Link>
+                  content.button1_link?.startsWith('http') ? (
+                    <a 
+                      href={content.button1_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-gold-600 to-gold-500 text-midnight-950 rounded-full hover:from-gold-500 hover:to-gold-400 transition-all shadow-[0_0_20px_rgba(212,175,55,0.3)] font-medium tracking-wide flex items-center justify-center gap-2"
+                    >
+                      {content.button1_text}
+                      <MoveRight size={18} />
+                    </a>
+                  ) : (
+                    <Link 
+                      href={content.button1_link || '#'}
+                      className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-gold-600 to-gold-500 text-midnight-950 rounded-full hover:from-gold-500 hover:to-gold-400 transition-all shadow-[0_0_20px_rgba(212,175,55,0.3)] font-medium tracking-wide flex items-center justify-center gap-2"
+                    >
+                      {content.button1_text}
+                      <MoveRight size={18} />
+                    </Link>
+                  )
                 )}
                 {content.show_button2 && content.button2_text && (
                   <>
@@ -87,12 +99,23 @@ export function DestaqueBlock({ block }: { block: PageBlock }) {
                         {content.button2_text}
                       </button>
                     ) : (
-                      <Link 
-                        href={content.button2_link || '#'}
-                        className="w-full sm:w-auto px-8 py-4 bg-transparent border border-white/10 text-white rounded-full hover:bg-white/5 transition-all text-sm tracking-wide text-center"
-                      >
-                        {content.button2_text}
-                      </Link>
+                      content.button2_link?.startsWith('http') ? (
+                        <a 
+                          href={content.button2_link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full sm:w-auto px-8 py-4 bg-transparent border border-white/10 text-white rounded-full hover:bg-white/5 transition-all text-sm tracking-wide text-center block"
+                        >
+                          {content.button2_text}
+                        </a>
+                      ) : (
+                        <Link 
+                          href={content.button2_link || '#'}
+                          className="w-full sm:w-auto px-8 py-4 bg-transparent border border-white/10 text-white rounded-full hover:bg-white/5 transition-all text-sm tracking-wide text-center"
+                        >
+                          {content.button2_text}
+                        </Link>
+                      )
                     )}
                   </>
                 )}
@@ -202,7 +225,7 @@ export function DestaqueBlock({ block }: { block: PageBlock }) {
 
               {/* === NARRATIVA AVANÇADA (CUSTOM BLOCKS) === */}
               {content.lightbox_type === 'custom_blocks' && (
-                <div className="p-8 md:p-14 relative pb-24">
+                <div className="p-8 md:p-14 relative pb-12">
                   {content.lightbox_title && (
                     <h3 className="font-serif text-3xl md:text-4xl text-gold-400 mb-10 border-b border-gold-500/10 pb-6 relative inline-block">
                       {content.lightbox_title}
@@ -229,6 +252,33 @@ export function DestaqueBlock({ block }: { block: PageBlock }) {
                       <p className="text-slate-500 italic font-light">Nenhum conteúdo adicionado nesta narrativa.</p>
                     )}
                   </div>
+                </div>
+              )}
+
+              {/* === BOTAO EXTRA DO LIGHTBOX === */}
+              {content.lightbox_show_button && content.lightbox_button_text && (
+                <div className="p-8 md:px-14 md:py-10 flex justify-center border-t border-white/5 bg-midnight-950/50 mt-auto">
+                  {content.lightbox_button_link?.startsWith('http') ? (
+                    <a 
+                      href={content.lightbox_button_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => setIsLightboxOpen(false)}
+                      className="px-10 py-4 bg-gradient-to-r from-gold-600 to-gold-500 text-midnight-950 rounded-full hover:from-gold-500 hover:to-gold-400 transition-all shadow-[0_0_20px_rgba(212,175,55,0.25)] font-semibold tracking-wide flex items-center gap-3 text-lg"
+                    >
+                      {content.lightbox_button_text}
+                      <MoveRight size={20} />
+                    </a>
+                  ) : (
+                    <Link 
+                      href={content.lightbox_button_link || '#'}
+                      onClick={() => setIsLightboxOpen(false)}
+                      className="px-10 py-4 bg-gradient-to-r from-gold-600 to-gold-500 text-midnight-950 rounded-full hover:from-gold-500 hover:to-gold-400 transition-all shadow-[0_0_20px_rgba(212,175,55,0.25)] font-semibold tracking-wide flex items-center gap-3 text-lg"
+                    >
+                      {content.lightbox_button_text}
+                      <MoveRight size={20} />
+                    </Link>
+                  )}
                 </div>
               )}
 

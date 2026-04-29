@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { RevealText } from "@/components/ui/RevealText";
 import type { PageBlock, CardSimplesContent, CardItem } from "@/lib/types";
-import { Moon, Leaf, Sun, Star, Heart, Flame, Sparkles, Zap, Eye, Shield, Flower2, TreePine, Wind, Droplets, CloudSun, X } from "lucide-react";
+import { Moon, Leaf, Sun, Star, Heart, Flame, Sparkles, Zap, Eye, Shield, Flower2, TreePine, Wind, Droplets, CloudSun, X, MoveRight } from "lucide-react";
 import Link from "next/link";
 
 // Helper for dynamic icons
@@ -164,7 +164,7 @@ function CardLightbox({ item, isOpen, onClose }: { item: CardItem; isOpen: boole
 
           {/* NARRATIVA AVANÇADA */}
           {lbType === 'custom_blocks' && (
-            <div className="p-8 md:p-14 relative pb-24">
+            <div className="p-8 md:p-14 relative pb-12">
               {item.lightbox_title && (
                 <h3 className="font-serif text-3xl md:text-4xl text-gold-400 mb-10 border-b border-gold-500/10 pb-6 relative inline-block">
                   {item.lightbox_title}
@@ -191,6 +191,33 @@ function CardLightbox({ item, isOpen, onClose }: { item: CardItem; isOpen: boole
                   <p className="text-slate-500 italic font-light">Nenhum conteúdo adicionado nesta narrativa.</p>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* === BOTAO EXTRA DO LIGHTBOX === */}
+          {item.lightbox_show_button && item.lightbox_button_text && (
+            <div className="p-8 md:px-14 md:py-10 flex justify-center border-t border-white/5 bg-midnight-950/50 mt-auto">
+              {item.lightbox_button_link?.startsWith('http') ? (
+                <a 
+                  href={item.lightbox_button_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={onClose}
+                  className="px-10 py-4 bg-gradient-to-r from-gold-600 to-gold-500 text-midnight-950 rounded-full hover:from-gold-500 hover:to-gold-400 transition-all shadow-[0_0_20px_rgba(212,175,55,0.25)] font-semibold tracking-wide flex items-center gap-3 text-lg"
+                >
+                  {item.lightbox_button_text}
+                  <MoveRight size={20} />
+                </a>
+              ) : (
+                <Link 
+                  href={item.lightbox_button_link || '#'}
+                  onClick={onClose}
+                  className="px-10 py-4 bg-gradient-to-r from-gold-600 to-gold-500 text-midnight-950 rounded-full hover:from-gold-500 hover:to-gold-400 transition-all shadow-[0_0_20px_rgba(212,175,55,0.25)] font-semibold tracking-wide flex items-center gap-3 text-lg"
+                >
+                  {item.lightbox_button_text}
+                  <MoveRight size={20} />
+                </Link>
+              )}
             </div>
           )}
         </div>
@@ -238,9 +265,15 @@ export function CardSimplesBlock({ block }: { block: PageBlock }) {
                     <CardVisual item={item} index={index} />
                   </button>
                 ) : (
-                  <Link href={item.link || '/atendimentos'} className={cardClasses(index)}>
-                    <CardVisual item={item} index={index} />
-                  </Link>
+                  item.link?.startsWith('http') ? (
+                    <a href={item.link} target="_blank" rel="noopener noreferrer" className={cardClasses(index)}>
+                      <CardVisual item={item} index={index} />
+                    </a>
+                  ) : (
+                    <Link href={item.link || '/atendimentos'} className={cardClasses(index)}>
+                      <CardVisual item={item} index={index} />
+                    </Link>
+                  )
                 )}
               </RevealText>
             ))}
@@ -270,9 +303,15 @@ export function CardSimplesBlock({ block }: { block: PageBlock }) {
                    <CardVisual item={item} index={index} isMobile />
                  </button>
                ) : (
-                 <Link href={item.link || '/atendimentos'} key={index} className={mobileCardClasses}>
-                   <CardVisual item={item} index={index} isMobile />
-                 </Link>
+                 item.link?.startsWith('http') ? (
+                   <a href={item.link} target="_blank" rel="noopener noreferrer" key={index} className={mobileCardClasses}>
+                     <CardVisual item={item} index={index} isMobile />
+                   </a>
+                 ) : (
+                   <Link href={item.link || '/atendimentos'} key={index} className={mobileCardClasses}>
+                     <CardVisual item={item} index={index} isMobile />
+                   </Link>
+                 )
                )
              ))}
           </div>
