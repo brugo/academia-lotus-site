@@ -26,33 +26,34 @@ export function ConfirmationStep({ therapist, date, onBack, requestedService, us
     setLoading(true);
 
     try {
-      // Chamada oficial para gravar no nosso Banco E No Google Calendar
-      const res = await fetch("/api/calendar/book", {
+      // Chama a nova API de Checkout do Stripe
+      const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           therapistId: therapist.id,
           therapistEmail: therapist.google_calendar_id || therapist.email,
+          therapistName: therapist.name,
           clientName: formData.name,
           clientEmail: formData.email,
-          clientWhatsapp: formData.phone, // Enviando o WhatsApp para a API
+          clientWhatsapp: formData.phone,
           startTime: date.toISOString(),
-          requestedService: requestedService
+          requestedService: requestedService,
+          price: therapist.base_price || 150 // Preço base ou default
         })
       });
 
       const result = await res.json();
       
-      if (result.success) {
-        setMeetLink(result.meetLink || "");
-        setSuccess(true);
+      if (result.url) {
+        // Redireciona o usuário para a página de pagamento seguro do Stripe
+        window.location.href = result.url;
       } else {
-        alert("Erro do Servidor: " + (result.error || "Tente outro horário."));
-        onBack();
+        alert("Erro ao gerar link de pagamento: " + (result.error || "Tente novamente."));
       }
     } catch (error: any) {
       console.error(error);
-      alert("Houve um erro de comunicação. Tente novamente.");
+      alert("Houve um erro de comunicação com o servidor de pagamento.");
     } finally {
       setLoading(false);
     }

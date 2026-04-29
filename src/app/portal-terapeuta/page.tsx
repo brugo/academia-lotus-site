@@ -1,9 +1,10 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
-import { format, isAfter, isBefore } from 'date-fns';
-import ptBR from 'date-fns/locale/pt-BR';
-import { Calendar, Clock, User as UserIcon, LogOut, MessageCircle, Sparkles, Settings } from 'lucide-react';
+import { isAfter, isBefore } from 'date-fns';
+import { Calendar, User as UserIcon, LogOut, Sparkles, Settings } from 'lucide-react';
 import Link from 'next/link';
+import PaginatedAppointments from '@/components/PaginatedAppointments';
+import PaginatedHistory from '@/components/PaginatedHistory';
 
 export const metadata = {
   title: 'Portal do Terapeuta - Academia Lótus',
@@ -57,6 +58,9 @@ export default async function PortalTerapeutaPage() {
   const upcomingAppointments = appointments?.filter(app => isAfter(new Date(app.start_time), now)) || [];
   const pastAppointments = appointments?.filter(app => isBefore(new Date(app.start_time), now)).sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime()) || [];
 
+  // Injetar o email do terapeuta nos agendamentos para o componente de cancelamento
+  const upcomingWithEmail = upcomingAppointments.map(app => ({ ...app, therapist_email: therapist.email }));
+
   return (
     <main className="min-h-screen pt-24 pb-20 bg-midnight-950 font-sans text-white selection:bg-gold-500/30 overflow-hidden relative">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-5xl h-96 bg-emerald-900/10 blur-[150px] rounded-full pointer-events-none -z-10" />
@@ -108,6 +112,11 @@ export default async function PortalTerapeutaPage() {
               <h2 className="font-serif text-2xl text-white flex items-center gap-3">
                 <Calendar className="text-emerald-500" size={24} /> Próximos Atendimentos
               </h2>
+              {upcomingAppointments.length > 0 && (
+                <span className="text-xs text-slate-500 bg-white/5 border border-white/10 px-3 py-1 rounded-full">
+                  {upcomingAppointments.length} agendado{upcomingAppointments.length !== 1 ? 's' : ''}
+                </span>
+              )}
             </div>
 
             {upcomingAppointments.length === 0 ? (
@@ -121,53 +130,12 @@ export default async function PortalTerapeutaPage() {
                 </p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {upcomingAppointments.map((app) => (
-                  <div key={app.id} className="bg-gradient-to-r from-midnight-900 to-midnight-950 border border-emerald-500/20 hover:border-emerald-500/40 transition-colors rounded-3xl p-6 relative overflow-hidden group">
-                    <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
-                    
-                    <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 text-emerald-400 text-sm font-medium mb-2">
-                          <Clock size={16} />
-                          {format(new Date(app.start_time), "EEEE, dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
-                        </div>
-                        <h3 className="text-xl text-white font-medium mb-1">
-                          {app.service_name || 'Sessão Lótus'}
-                        </h3>
-                        <p className="text-slate-300 text-sm mb-1">Paciente: {app.client_name}</p>
-                        <p className="text-slate-400 text-sm">{app.client_email}</p>
-                        
-                        {app.client_whatsapp && (
-                          <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-green-500/10 text-green-400 rounded-lg text-sm border border-green-500/20">
-                            <MessageCircle size={14} /> {app.client_whatsapp}
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="flex-shrink-0 w-full md:w-auto flex flex-col gap-3">
-                        {app.client_whatsapp ? (
-                          <a 
-                            href={`https://wa.me/${app.client_whatsapp.replace(/\D/g, '')}`} 
-                            target="_blank" 
-                            rel="noreferrer"
-                            className="flex items-center justify-center gap-2 px-5 py-2.5 bg-green-600 text-white hover:bg-green-500 rounded-xl transition-colors text-sm font-medium w-full md:w-auto shadow-lg shadow-green-900/20"
-                          >
-                            <MessageCircle size={16} /> Chamar no WhatsApp
-                          </a>
-                        ) : (
-                          <button 
-                            disabled
-                            className="flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-800/50 text-slate-500 border border-white/5 rounded-xl text-sm font-medium w-full md:w-auto cursor-not-allowed"
-                          >
-                            <MessageCircle size={16} /> Sem WhatsApp
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <PaginatedAppointments
+                appointments={upcomingWithEmail}
+                variant="therapist"
+                itemsPerPage={4}
+                accentColor="emerald"
+              />
             )}
           </div>
 
@@ -178,25 +146,12 @@ export default async function PortalTerapeutaPage() {
             </h2>
 
             <div className="bg-midnight-900/30 border border-white/5 rounded-3xl p-6">
-              {pastAppointments.length === 0 ? (
-                <p className="text-slate-500 text-sm text-center py-8">
-                  Nenhum atendimento anterior.
-                </p>
-              ) : (
-                <div className="space-y-6">
-                  {pastAppointments.slice(0, 5).map((app, index) => (
-                    <div key={app.id} className="relative pl-6 border-l border-white/10 last:border-l-transparent">
-                      <div className="absolute -left-1.5 top-1.5 w-3 h-3 rounded-full bg-slate-700 border-2 border-midnight-950" />
-                      <div className="mb-1 text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        {format(new Date(app.start_time), "dd MMM yyyy", { locale: ptBR })}
-                      </div>
-                      <div className="text-white font-medium text-sm">
-                        {app.service_name || 'Sessão'} • {app.client_name}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <PaginatedHistory
+                items={pastAppointments}
+                variant="therapist"
+                initialVisible={5}
+                stepSize={5}
+              />
             </div>
 
           </div>
