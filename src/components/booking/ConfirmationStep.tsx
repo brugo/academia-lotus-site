@@ -5,7 +5,7 @@ import { format } from "date-fns";
 import ptBR from "date-fns/locale/pt-BR";
 import { ArrowLeft, CheckCircle2, Lock, Loader2, Video } from "lucide-react";
 
-export function ConfirmationStep({ therapist, date, onBack, requestedService, user }: { therapist: any, date: Date, onBack: () => void, requestedService?: string, user?: any }) {
+export function ConfirmationStep({ therapist, date, onBack, requestedService, user, reservationFee = 50 }: { therapist: any, date: Date, onBack: () => void, requestedService?: string, user?: any, reservationFee?: number }) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [meetLink, setMeetLink] = useState("");
@@ -38,8 +38,7 @@ export function ConfirmationStep({ therapist, date, onBack, requestedService, us
           clientEmail: formData.email,
           clientWhatsapp: formData.phone,
           startTime: date.toISOString(),
-          requestedService: requestedService,
-          price: therapist.base_price || 150 // Preço base ou default
+          requestedService: requestedService
         })
       });
 
@@ -185,11 +184,18 @@ export function ConfirmationStep({ therapist, date, onBack, requestedService, us
               </div>
 
               <div className="pt-4 border-t border-white/10 flex justify-between items-center">
-                <p className="text-slate-300">Total (Sinal)</p>
+                <p className="text-slate-300">Taxa de Reserva</p>
                 <p className="text-gold-400 font-serif text-xl border-b border-gold-500/30">
-                  R$ {therapist.base_price.toFixed(2)}
+                  R$ {reservationFee.toFixed(2)}
                 </p>
               </div>
+            </div>
+
+            <div className="mt-4 p-4 bg-blue-900/10 border border-blue-500/20 rounded-xl">
+              <p className="text-xs text-blue-200 leading-relaxed">
+                <strong className="text-blue-400 font-semibold block mb-1">Importante:</strong> 
+                Este valor garante a exclusividade do seu horário. Ele <strong className="text-white">não é uma taxa extra</strong>: o valor será abatido do total da consulta no dia do atendimento.
+              </p>
             </div>
           </div>
 
@@ -199,10 +205,10 @@ export function ConfirmationStep({ therapist, date, onBack, requestedService, us
             className="w-full px-6 py-4 bg-gold-600 hover:bg-gold-500 disabled:bg-slate-800 disabled:text-slate-500 text-midnight-950 font-medium rounded-2xl transition-all shadow-lg flex items-center justify-center gap-3"
           >
             {loading ? <Loader2 className="animate-spin" size={20} /> : <Lock size={18} />}
-            {loading ? "Sincronizando..." : "Pagar Agora no Cartão"}
+            {loading ? "Sincronizando..." : "Prosseguir para Pagamento"}
           </button>
           <p className="text-center text-xs text-slate-500 mt-2 flex justify-center gap-1">
-            Integração futura com Stripe.
+            Integração segura com Stripe.
           </p>
         </div>
 

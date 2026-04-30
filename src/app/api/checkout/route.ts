@@ -20,6 +20,10 @@ export async function POST(req: Request) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
+    // Buscar a taxa de agendamento (reservation fee) diretamente do banco (mais seguro que receber do client)
+    const { data: feeData } = await supabase.from('system_settings').select('value').eq('id', 'reservation_fee').single();
+    const reservationFee = feeData?.value?.amount || 50;
+
     // Criar a sessão de checkout no Stripe
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -30,10 +34,10 @@ export async function POST(req: Request) {
           price_data: {
             currency: 'brl',
             product_data: {
-              name: `Sessão com ${therapistName}`,
-              description: `${requestedService || 'Atendimento Terapêutico'} - ${new Date(startTime).toLocaleString('pt-BR')}`,
+              name: `Taxa de Reserva - ${requestedService || 'Atendimento Terapêutico'}`,
+              description: `Sessão com ${therapistName} - ${new Date(startTime).toLocaleString('pt-BR')}`,
             },
-            unit_amount: Math.round(price * 100), // Stripe usa centavos (R$ 100,00 = 10000)
+            unit_amount: Math.round(reservationFee * 100), // Stripe usa centavos
           },
           quantity: 1,
         },

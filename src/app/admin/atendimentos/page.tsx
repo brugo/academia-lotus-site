@@ -32,8 +32,11 @@ export default function ServicesAdminPage() {
   const [uploading, setUploading] = useState(false);
   const [activeTab, setActiveTab] = useState<'content' | 'blocks'>('content');
   
+  const [reservationFee, setReservationFee] = useState<number>(50);
+  const [isSavingFee, setIsSavingFee] = useState(false);
+  
   const [formData, setFormData] = useState<Partial<DatabaseService>>({
-    title: "", description: "", short_subtitle: "", duration: "1h", icon: "Star", image_url: "", is_active: true, benefits: [], order_index: 0, is_featured: false
+    title: "", description: "", short_subtitle: "", duration: "1h", icon: "Star", image_url: "", is_active: true, benefits: [], order_index: 0, is_featured: false, base_price: 150
   });
 
   // Estado temporário na tela de Serviços para quais Terapeutas foram marcados
@@ -45,13 +48,15 @@ export default function ServicesAdminPage() {
 
   const fetchData = async () => {
     setLoading(true);
-    const [sRes, tRes] = await Promise.all([
+    const [sRes, tRes, feeRes] = await Promise.all([
       supabase.from("services").select("*").order("order_index", { ascending: true }),
-      supabase.from("therapists").select("*").order("name", { ascending: true })
+      supabase.from("therapists").select("*").order("name", { ascending: true }),
+      supabase.from("system_settings").select("value").eq("id", "reservation_fee").single()
     ]);
     
     if (sRes.data) setServices(sRes.data);
     if (tRes.data) setTherapists(tRes.data as DatabaseTherapist[]);
+    if (feeRes.data && feeRes.data.value) setReservationFee(feeRes.data.value.amount || 50);
     
     setLoading(false);
   };
@@ -128,7 +133,7 @@ export default function ServicesAdminPage() {
     
     setShowAddForm(false);
     setIsEditing(null);
-    setFormData({ title: "", description: "", short_subtitle: "", duration: "1h", icon: "Star", image_url: "", is_active: true, benefits: [], order_index: 0, is_featured: false });
+    setFormData({ title: "", description: "", short_subtitle: "", duration: "1h", icon: "Star", image_url: "", is_active: true, benefits: [], order_index: 0, is_featured: false, base_price: 150 });
     setBenefitsInput("");
     setSelectedTherapistIds([]);
     fetchData();
@@ -138,6 +143,13 @@ export default function ServicesAdminPage() {
     const newState = !s.is_featured;
     setServices((prev) => prev.map(item => item.id === s.id ? { ...item, is_featured: newState } : item));
     await supabase.from("services").update({ is_featured: newState }).eq("id", s.id);
+  };
+
+  const handleSaveFee = async () => {
+    setIsSavingFee(true);
+    await supabase.from('system_settings').upsert({ id: 'reservation_fee', value: { amount: reservationFee } });
+    setIsSavingFee(false);
+    alert('Taxa de agendamento salva com sucesso!');
   };
 
   const editService = (s: DatabaseService) => {
@@ -181,7 +193,7 @@ export default function ServicesAdminPage() {
   };
 
   const startNewService = () => {
-    setFormData({ title: "", description: "", short_subtitle: "", duration: "1h", icon: "Star", image_url: "", is_active: true, benefits: [], order_index: 0, is_featured: false });
+    setFormData({ title: "", description: "", short_subtitle: "", duration: "1h", icon: "Star", image_url: "", is_active: true, benefits: [], order_index: 0, is_featured: false, base_price: 150 });
     setBenefitsInput("");
     setIsEditing(null);
     setSelectedTherapistIds([]);
@@ -220,6 +232,21 @@ export default function ServicesAdminPage() {
 
       {activeTab === 'content' && (
         <div className="space-y-8">
+          
+          <div className="bg-midnight-950/50 p-6 rounded-2xl border border-white/5 shadow-inner mb-8">
+            <h3 className="text-lg font-serif text-white mb-2">Taxa de Reserva Global</h3>
+            <p className="text-slate-400 text-sm mb-4">Este é o valor cobrado via Stripe no ato do agendamento para confirmar a reserva (sinal), independente do valor total da técnica.</p>
+            <div className="flex gap-4 max-w-sm">
+              <div className="relative flex-1">
+                <span className="absolute left-4 top-3.5 text-slate-400">R$</span>
+                <input type="number" value={reservationFee} onChange={e => setReservationFee(Number(e.target.value))} className="w-full bg-midnight-900 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white focus:outline-none focus:border-gold-500" />
+              </div>
+              <button onClick={handleSaveFee} disabled={isSavingFee} className="px-6 bg-gold-600 hover:bg-gold-500 text-midnight-950 font-medium rounded-xl whitespace-nowrap">
+                {isSavingFee ? 'Salvando...' : 'Salvar Taxa'}
+              </button>
+            </div>
+          </div>
+
           <div className="flex justify-end">
             {!showAddForm && (
               <button
@@ -262,6 +289,15 @@ export default function ServicesAdminPage() {
                   <label className="text-sm font-medium text-slate-300">Ícone Principal (Nome do Astro)</label>
                   <input type="text" value={formData.icon} onChange={e => setFormData({...formData, icon: e.target.value})} className="w-full bg-midnight-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-gold-500 transition-colors" placeholder="Moon, Sun, Star, Eye, Compass..." />
                   <p className="text-xs text-slate-500 mt-1">Ex: Star, Moon, Sun, Compass, Brain, Eye</p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-300">Preço Total da Consulta</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-3.5 text-slate-400">R$</span>
+                    <input type="number" value={formData.base_price || ''} onChange={e => setFormData({...formData, base_price: Number(e.target.value)})} className="w-full bg-midnight-950 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white focus:outline-none focus:border-gold-500 transition-colors" />
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1">Apenas informativo. O valor cobrado agora será a Taxa de Reserva.</p>
                 </div>
 
                 <div className="space-y-2 md:col-span-2 border-t border-white/10 pt-6 mt-2">
@@ -396,6 +432,7 @@ export default function ServicesAdminPage() {
                       <p className="text-slate-400 text-sm mt-1">{s.short_subtitle}</p>
                       <div className="flex items-center gap-3 mt-3 text-xs text-slate-500">
                         <span className="bg-white/5 px-2 py-1 rounded-md text-gold-300">{s.duration}</span>
+                        <span className="bg-white/5 px-2 py-1 rounded-md text-emerald-400">R$ {s.base_price?.toFixed(2) || '0.00'}</span>
                         <span className="truncate">{profCount} {profCount === 1 ? 'Terapeuta' : 'Terapeutas'} Habilitados</span>
                       </div>
                     </div>

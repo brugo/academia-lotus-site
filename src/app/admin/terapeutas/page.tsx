@@ -16,7 +16,6 @@ type Therapist = {
   email: string;
   google_calendar_id: string;
   whatsapp: string; // Adicionado WhatsApp do terapeuta
-  base_price: number;
   is_active: boolean;
   supported_services: string[];
   order_index: number;
@@ -33,7 +32,7 @@ export default function TerapeutasAdminPage() {
   const [therapistToDelete, setTherapistToDelete] = useState<Therapist | null>(null);
   const [activeTab, setActiveTab] = useState<'content' | 'blocks'>('content');
   const [formData, setFormData] = useState<Partial<Therapist>>({
-    name: "", specialty: "", bio: "", email: "", google_calendar_id: "", whatsapp: "", photo_url: "/user-placeholder.png", base_price: 150, is_active: true, supported_services: [], order_index: 0
+    name: "", specialty: "", bio: "", email: "", google_calendar_id: "", whatsapp: "", photo_url: "/user-placeholder.png", is_active: true, supported_services: [], order_index: 0
   });
 
   useEffect(() => {
@@ -111,7 +110,7 @@ export default function TerapeutasAdminPage() {
     
     setShowAddForm(false);
     setIsEditing(null);
-    setFormData({ name: "", specialty: "", bio: "", email: "", google_calendar_id: "", whatsapp: "", photo_url: "/user-placeholder.png", base_price: 150, is_active: true, supported_services: [], order_index: 0 });
+    setFormData({ name: "", specialty: "", bio: "", email: "", google_calendar_id: "", whatsapp: "", photo_url: "/user-placeholder.png", is_active: true, supported_services: [], order_index: 0 });
     fetchTherapistsAndServices();
   };
 
@@ -200,14 +199,6 @@ export default function TerapeutasAdminPage() {
                   <input type="text" value={formData.google_calendar_id} onChange={e => setFormData({...formData, google_calendar_id: e.target.value})} className="w-full bg-midnight-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-gold-500 transition-colors" placeholder="Deixe em branco para usar o próprio E-mail" />
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-300">Preço da Consulta (Sinal de Reserva)</label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-3.5 text-slate-400">R$</span>
-                    <input type="number" value={formData.base_price} onChange={e => setFormData({...formData, base_price: Number(e.target.value)})} className="w-full bg-midnight-950 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white focus:outline-none focus:border-gold-500 transition-colors" />
-                  </div>
-                </div>
-
                 <div className="space-y-4 md:col-span-2">
                   <label className="text-sm font-medium text-slate-300 block">Foto de Rosto (Upload ou Link)</label>
                   <ImageUploader 
@@ -293,7 +284,6 @@ export default function TerapeutasAdminPage() {
                     </h3>
                     <p className="text-gold-400 text-sm">{t.specialty}</p>
                     <div className="flex items-center gap-3 mt-2 text-xs text-slate-400">
-                      <span className="flex items-center gap-1"><Star size={12}/> R$ {t.base_price}</span>
                       <span className="truncate">{t.email}</span>
                     </div>
                   </div>

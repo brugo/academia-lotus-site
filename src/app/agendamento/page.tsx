@@ -16,6 +16,10 @@ export default async function AgendamentoPage({ searchParams }: { searchParams: 
 
   const { data: { user } } = await supabase.auth.getUser();
 
+  // Fetch reservation fee
+  const { data: feeData } = await supabase.from('system_settings').select('value').eq('id', 'reservation_fee').single();
+  const reservationFee = feeData?.value?.amount || 50;
+
   return (
     <main className="min-h-screen pt-24 bg-midnight-950 font-sans text-white selection:bg-gold-500/30 overflow-hidden relative">
       {/* Glow de fundo luxuoso */}
@@ -34,6 +38,7 @@ export default async function AgendamentoPage({ searchParams }: { searchParams: 
           requestedService={awaitedParams.servico} 
           requestedTherapistId={awaitedParams.terapeutaId}
           user={user} 
+          reservationFee={reservationFee}
         />
       </div>
     </main>

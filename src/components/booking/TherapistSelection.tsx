@@ -84,7 +84,7 @@ export function TherapistSelection({ therapists, onSelect, requestedService }: {
             <div className="flex items-center justify-between border-t border-white/10 pt-4 mt-2">
                <div className="flex items-center gap-1.5 text-slate-300 font-medium">
                   <Star size={16} className="text-gold-500 fill-gold-500/20" /> 
-                  <span className="text-sm">R$ {therapist.base_price.toFixed(2)}</span>
+                  <span className="text-sm">Ver Horários Disponíveis</span>
                </div>
                
                <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-gold-500 group-hover:text-midnight-950 transition-colors">

@@ -41,6 +41,7 @@ export interface DatabaseService {
   is_active: boolean;
   is_featured: boolean;
   order_index: number;
+  base_price?: number;
   created_at?: string;
 }
 
@@ -52,7 +53,7 @@ export interface DatabaseTherapist {
   photo_url: string;
   email: string;
   google_calendar_id: string;
-  base_price: number;
+  base_price?: number;
   is_active: boolean;
   supported_services: string[]; // Array of service slugs or titles
 }

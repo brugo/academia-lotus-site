@@ -8,7 +8,7 @@ import { ConfirmationStep } from "./ConfirmationStep";
 
 type Step = 1 | 2 | 3;
 
-export function BookingFlow({ initialTherapists, requestedService, requestedTherapistId, user }: { initialTherapists: any[], requestedService?: string, requestedTherapistId?: string, user?: any }) {
+export function BookingFlow({ initialTherapists, requestedService, requestedTherapistId, user, reservationFee = 50 }: { initialTherapists: any[], requestedService?: string, requestedTherapistId?: string, user?: any, reservationFee?: number }) {
   const preSelectedTherapist = requestedTherapistId ? initialTherapists.find(t => t.id === requestedTherapistId) : null;
   const [step, setStep] = useState<Step>(preSelectedTherapist ? 2 : 1);
   const [selectedTherapist, setSelectedTherapist] = useState<any | null>(preSelectedTherapist || null);
@@ -98,6 +98,7 @@ export function BookingFlow({ initialTherapists, requestedService, requestedTher
               onBack={() => setStep(2)}
               requestedService={requestedService}
               user={user}
+              reservationFee={reservationFee}
             />
           </motion.div>
         )}

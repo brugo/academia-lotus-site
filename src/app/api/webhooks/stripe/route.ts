@@ -2,7 +2,9 @@ import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { calendar } from '@/lib/google-calendar';
 import { createClient } from '@supabase/supabase-js';
-import { addMinutes } from 'date-fns';
+import { addMinutes, format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { sendBookingNotificationEmails } from '@/lib/email';
 
 // Cria um cliente Supabase com a Service Role para bypassar RLS, pois o webhook
 // não tem o cookie de autenticação do usuário.
@@ -66,6 +68,7 @@ export async function POST(req: Request) {
     const {
       therapistId,
       therapistEmail,
+      therapistName,
       clientName,
       clientEmail,
       clientWhatsapp,
@@ -156,6 +159,34 @@ export async function POST(req: Request) {
     }
 
     console.log(`✅ Agendamento criado com sucesso: ${serviceTitle} - ${clientName} em ${start.toISOString()}`);
+
+    // PASSO 4: Buscar dados do terapeuta (whatsapp) e enviar e-mails de notificação
+    let therapistDisplayName = therapistName || 'Terapeuta';
+    let therapistWhatsapp = '';
+    if (therapistId) {
+      const { data: therapistData } = await supabase
+        .from('therapists')
+        .select('name, whatsapp')
+        .eq('id', therapistId)
+        .single();
+      if (therapistData) {
+        therapistDisplayName = therapistData.name || therapistDisplayName;
+        therapistWhatsapp = therapistData.whatsapp || '';
+      }
+    }
+
+    await sendBookingNotificationEmails({
+      clientName,
+      clientEmail,
+      clientWhatsapp: clientWhatsapp || '',
+      therapistName: therapistDisplayName,
+      therapistEmail,
+      therapistWhatsapp,
+      serviceName: serviceTitle,
+      dateFormatted: format(start, "dd 'de' MMMM 'de' yyyy", { locale: ptBR }),
+      timeFormatted: format(start, 'HH:mm', { locale: ptBR }),
+      dayOfWeek: format(start, 'EEEE', { locale: ptBR }),
+    });
 
   } catch (error) {
     console.error("Erro ao processar agendamento pós-pagamento:", error);

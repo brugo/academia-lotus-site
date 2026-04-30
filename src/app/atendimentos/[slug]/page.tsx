@@ -22,6 +22,9 @@ export default async function AtendimentoPage({ params, searchParams }: { params
     .eq("slug", slug)
     .single();
 
+  const { data: feeData } = await supabase.from('system_settings').select('value').eq('id', 'reservation_fee').single();
+  const reservationFee = feeData?.value?.amount || 50;
+
   const service = serviceRes as DatabaseService | null;
 
   // Fallback se não encontrar
@@ -79,6 +82,13 @@ export default async function AtendimentoPage({ params, searchParams }: { params
                 <RevealText element="p" delay={0.5} className="text-slate-300 font-light leading-relaxed text-lg text-justify whitespace-pre-wrap">
                   {data.description}
                 </RevealText>
+
+                {data.image_url && (
+                   <RevealText delay={0.8} className="mt-8 w-full h-[300px] sm:h-[400px] md:h-[450px] rounded-3xl relative overflow-hidden group shadow-2xl ring-1 ring-white/10 hover:ring-gold-500/30 transition-all duration-500">
+                      <div className="absolute inset-0 bg-gold-500/10 mix-blend-overlay z-10 group-hover:opacity-0 transition-opacity duration-500" />
+                      <img src={data.image_url} alt={data.title} className="w-full h-full object-cover group-hover:scale-105 group-hover:rotate-1 transition-transform duration-1000 ease-out" />
+                   </RevealText>
+                )}
               </div>
 
               {/* Sidebar do Card com Detalhes */}
@@ -89,6 +99,21 @@ export default async function AtendimentoPage({ params, searchParams }: { params
                       <h4 className="text-white font-medium mb-1">Duração Média</h4>
                       <p className="text-slate-400 font-light text-sm">{data.duration}</p>
                     </div>
+                 </RevealText>
+                 
+                 <RevealText delay={0.65} className="bg-midnight-950/80 border border-white/5 rounded-2xl p-6 hover:border-gold-500/20 transition-colors">
+                    <h4 className="text-white font-medium mb-3">Valores do Encontro</h4>
+                    <div className="flex justify-between items-end mb-2">
+                      <span className="text-slate-400 font-light text-sm">Valor da Consulta</span>
+                      <span className="text-gold-400 font-medium">R$ {data.base_price?.toFixed(2) || '150.00'}</span>
+                    </div>
+                    <div className="flex justify-between items-end pt-3 border-t border-white/10">
+                      <span className="text-slate-300 font-medium text-sm">Taxa de Reserva</span>
+                      <span className="text-white font-serif text-lg">R$ {reservationFee.toFixed(2)}</span>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-4 leading-relaxed">
+                      Este valor inicial garante a exclusividade do seu horário e <strong className="text-slate-400">será abatido do valor total da consulta</strong> no dia do atendimento.
+                    </p>
                  </RevealText>
                  
                  <RevealText delay={0.7} className="bg-midnight-950/80 border border-white/10 rounded-2xl p-6 relative overflow-hidden group hover:border-gold-500/20 transition-colors">
@@ -105,13 +130,6 @@ export default async function AtendimentoPage({ params, searchParams }: { params
                       ))}
                     </ul>
                  </RevealText>
-                 
-                 {data.image_url && (
-                   <RevealText delay={0.8} className="mt-2 w-full h-[300px] md:h-full min-h-[300px] rounded-2xl relative overflow-hidden group shadow-xl ring-1 ring-white/10 hover:ring-gold-500/30 transition-all duration-500">
-                      <div className="absolute inset-0 bg-gold-500/10 mix-blend-overlay z-10 group-hover:opacity-0 transition-opacity duration-500" />
-                      <img src={data.image_url} alt={data.title} className="w-full h-full object-cover group-hover:scale-105 group-hover:rotate-1 transition-transform duration-1000 ease-out" />
-                   </RevealText>
-                 )}
               </div>
             </div>
 
