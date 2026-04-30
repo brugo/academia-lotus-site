@@ -88,6 +88,8 @@ export default async function AtendimentosPage({ searchParams }: { searchParams:
               ? `/atendimentos/${service.slug}?terapeuta=${terapeutaId}`
               : `/atendimentos/${service.slug}`;
 
+            const maxChars = service.is_featured ? 600 : 270;
+
             return (
               <RevealText key={service.id} delay={0.2 + index * 0.1} className={`h-full ${service.is_featured ? 'md:col-span-2 lg:col-span-2' : ''}`}>
                 <Link href={linkHref} className="block group h-full bg-midnight-900/40 backdrop-blur-md border border-white/5 rounded-3xl p-8 hover:bg-midnight-800/60 hover:border-gold-500/30 transition-all duration-500 flex flex-col relative overflow-hidden cursor-pointer">
@@ -109,7 +111,7 @@ export default async function AtendimentosPage({ searchParams }: { searchParams:
                   
                   <h3 className="font-serif text-2xl text-slate-100 mb-4 tracking-wide relative z-10">{service.title}</h3>
                   <p className="text-slate-400 font-light text-sm leading-relaxed flex-grow relative z-10">
-                    {service.description.length > 270 ? service.description.substring(0, 270).trim() + "..." : service.description}
+                    {service.description.length > maxChars ? service.description.substring(0, maxChars).trim() + "..." : service.description}
                   </p>
                   
                   <div className="mt-8 self-start text-xs text-gold-500 font-medium tracking-widest uppercase flex items-center gap-2 group-hover:text-gold-400 transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-gold-500 group-hover:after:w-full after:transition-all after:duration-300 pb-1 z-10">

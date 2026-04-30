@@ -48,6 +48,7 @@ export async function POST(req: Request) {
         startTime,
         requestedService: requestedService || '',
         userId: user?.id || '',
+        therapistName: therapistName || '',
       },
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/agendamento/sucesso?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/terapeutas`,

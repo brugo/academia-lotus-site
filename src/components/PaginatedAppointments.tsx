@@ -92,7 +92,7 @@ export default function PaginatedAppointments({
           <div className={`absolute top-0 left-0 w-1 h-full ${barColor}`} />
 
           {/* Modal de Confirmação de Cancelamento */}
-          {confirmCancelId === app.id && (
+          {variant === 'therapist' && confirmCancelId === app.id && (
             <div className="absolute inset-0 bg-midnight-950/95 backdrop-blur-sm z-20 flex items-center justify-center rounded-3xl p-4">
               <div className="text-center max-w-xs">
                 <div className="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -192,12 +192,14 @@ export default function PaginatedAppointments({
               )}
 
               {/* Botão Cancelar */}
-              <button
-                onClick={() => setConfirmCancelId(app.id)}
-                className="flex items-center justify-center gap-2 px-5 py-2 text-red-400/60 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all text-xs font-medium w-full md:w-auto border border-transparent hover:border-red-500/20"
-              >
-                <X size={14} /> Cancelar Sessão
-              </button>
+              {variant === 'therapist' && (
+                <button
+                  onClick={() => setConfirmCancelId(app.id)}
+                  className="flex items-center justify-center gap-2 px-5 py-2 text-red-400/60 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all text-xs font-medium w-full md:w-auto border border-transparent hover:border-red-500/20"
+                >
+                  <X size={14} /> Cancelar Sessão
+                </button>
+              )}
             </div>
           </div>
         </div>

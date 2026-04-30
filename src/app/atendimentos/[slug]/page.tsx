@@ -76,7 +76,7 @@ export default async function AtendimentoPage({ params, searchParams }: { params
             <div className="flex flex-col md:flex-row gap-12 relative z-10">
               <div className="flex-1 space-y-8">
                 <RevealText element="h3" delay={0.4} className="font-serif text-3xl text-white">Sobre a Técnica</RevealText>
-                <RevealText element="p" delay={0.5} className="text-slate-300 font-light leading-relaxed text-lg text-justify">
+                <RevealText element="p" delay={0.5} className="text-slate-300 font-light leading-relaxed text-lg text-justify whitespace-pre-wrap">
                   {data.description}
                 </RevealText>
               </div>
