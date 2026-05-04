@@ -1,43 +1,35 @@
 import { redirect } from "next/navigation";
 import { CheckCircle2, ArrowRight, Calendar, Clock, User, Sparkles, Info } from "lucide-react";
-import { createClient } from "@supabase/supabase-js";
+import { stripe } from "@/lib/stripe";
+import Link from "next/link";
 
-// Cliente Supabase com Service Role para consultar pending_checkouts
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-
-export default async function SuccessPage({ searchParams }: { searchParams: Promise<{ ref?: string }> }) {
+export default async function SuccessPage({ searchParams }: { searchParams: Promise<{ session_id?: string }> }) {
   const resolvedSearchParams = await searchParams;
-  const referenceId = resolvedSearchParams.ref;
+  const sessionId = resolvedSearchParams.session_id;
 
-  if (!referenceId) {
+  if (!sessionId) {
     redirect("/");
   }
 
-  // Buscar os metadados do agendamento no Supabase usando o reference_id
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
-  
-  const { data: checkout, error } = await supabase
-    .from('pending_checkouts')
-    .select('*')
-    .eq('reference_id', referenceId)
-    .single();
+  let session;
+  try {
+    session = await stripe.checkout.sessions.retrieve(sessionId);
+  } catch (error) {
+    console.error("Erro ao recuperar sessão do Stripe:", error);
+    redirect("/");
+  }
 
-  if (error || !checkout) {
-    console.error("Erro ao recuperar dados do checkout:", error);
+  const metadata = session.metadata;
+  
+  if (!metadata) {
     return (
       <div className="min-h-screen bg-midnight-950 flex flex-col items-center justify-center px-6 text-center">
         <h1 className="text-2xl text-white">Sessão não encontrada</h1>
-        <p className="text-slate-400 mt-2">O link de pagamento pode ter expirado ou já foi processado.</p>
-        <a href={siteUrl} className="mt-6 px-6 py-3 bg-gold-600 text-midnight-950 rounded-xl">
-          Voltar ao Início
-        </a>
       </div>
     );
   }
 
-  const { start_time: startTime, requested_service: requestedService, therapist_name: therapistName } = checkout;
+  const { startTime, requestedService, therapistName } = metadata;
   
   const dateObj = new Date(startTime);
   
@@ -127,16 +119,16 @@ export default async function SuccessPage({ searchParams }: { searchParams: Prom
         </div>
         
         <p className="text-slate-400 text-sm mb-6">
-          Acompanhe estas e mais informações importantes como whatsapp do terapeuta no menu &quot;Meu Perfil&quot; na barra superior. Tenha um bom atendimento.
+          Acompanhe estas e mais informações importantes como whatsapp do terapeuta no menu "Meu Perfil" na barra superior. Tenha um bom atendimento.
         </p>
         
-        <a 
-          href={`${siteUrl}/jornada`}
+        <Link 
+          href="/jornada"
           className="w-full px-6 py-4 bg-gold-600 hover:bg-gold-500 text-midnight-950 font-medium rounded-xl transition-all flex items-center justify-center gap-2 group"
         >
           Acessar Meu Perfil 
           <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-        </a>
+        </Link>
       </div>
     </div>
   );

@@ -1,0 +1,244 @@
+import { NextResponse } from 'next/server';
+import { calendar } from '@/lib/google-calendar';
+import { createClient } from '@supabase/supabase-js';
+import { addMinutes, format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { sendBookingNotificationEmails } from '@/lib/email';
+
+// Cliente Supabase com Service Role para bypassar RLS (webhook não tem sessão de usuário)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+// Trava em memória para evitar processamento simultâneo do mesmo evento
+const processingEvents = new Set<string>();
+
+function parseDuration(durationStr: string): number {
+  let minutes = 60; // default 1h
+  if (!durationStr) return minutes;
+  
+  const hMatch = durationStr.match(/(\d+)h/i);
+  const mMatch = durationStr.match(/(\d+)m/i);
+  
+  minutes = 0;
+  if (hMatch) minutes += parseInt(hMatch[1]) * 60;
+  if (mMatch) minutes += parseInt(mMatch[1]);
+  
+  if (minutes === 0) minutes = 60;
+  return minutes;
+}
+
+/**
+ * Webhook handler para notificações do PagBank.
+ * 
+ * O PagBank envia webhooks em dois cenários:
+ * 1. Transacionais: quando o status de um pagamento muda (PAID, IN_ANALYSIS, DECLINED, CANCELED, WAITING)
+ * 2. Checkout: quando o status do checkout muda (EXPIRED, INACTIVE, etc.)
+ * 
+ * Para nosso caso, queremos processar quando uma charge dentro de um order está com status PAID.
+ */
+export async function POST(req: Request) {
+  let payload: any;
+
+  try {
+    payload = await req.json();
+  } catch (error) {
+    console.error('[PagBank Webhook] Erro ao parsear body:', error);
+    return NextResponse.json({ error: 'Invalid body' }, { status: 400 });
+  }
+
+  console.log('[PagBank Webhook] Notificação recebida:', JSON.stringify(payload, null, 2));
+
+  // O webhook do PagBank pode enviar tanto notificação de checkout quanto de order/transação
+  // Para transações, o payload contém "charges" com status
+  // Para checkout, o payload contém o status do checkout em si
+
+  // Verificar se é uma notificação transacional (Order com charges)
+  const charges = payload.charges || [];
+  const paidCharge = charges.find((charge: any) => charge.status === 'PAID');
+
+  if (!paidCharge) {
+    // Não é um pagamento confirmado - pode ser checkout update, análise, etc.
+    console.log('[PagBank Webhook] Notificação não é PAID, ignorando. Status:', payload.status || 'N/A');
+    return NextResponse.json({ received: true });
+  }
+
+  // Usar o reference_id do pedido para localizar os metadados do agendamento
+  const referenceId = payload.reference_id;
+
+  if (!referenceId) {
+    console.error('[PagBank Webhook] reference_id ausente no payload');
+    return NextResponse.json({ received: true, error: 'missing_reference_id' });
+  }
+
+  // TRAVA 1: Se este exato evento já está sendo processado neste instante, ignorar
+  if (processingEvents.has(referenceId)) {
+    console.log(`[DUPLICATA BLOQUEADA] Evento ${referenceId} já está sendo processado.`);
+    return NextResponse.json({ received: true, duplicate: true });
+  }
+  processingEvents.add(referenceId);
+
+  try {
+    // Buscar os metadados do agendamento armazenados no banco durante o checkout
+    const { data: pendingCheckout, error: fetchError } = await supabase
+      .from('pending_checkouts')
+      .select('*')
+      .eq('reference_id', referenceId)
+      .single();
+
+    if (fetchError || !pendingCheckout) {
+      console.error('[PagBank Webhook] pending_checkout não encontrado para reference_id:', referenceId, fetchError);
+      return NextResponse.json({ received: true, error: 'checkout_not_found' });
+    }
+
+    // Se já foi processado, bloquear duplicata
+    if (pendingCheckout.status === 'completed') {
+      console.log(`[DUPLICATA BLOQUEADA] Checkout ${referenceId} já foi processado.`);
+      return NextResponse.json({ received: true, duplicate: true });
+    }
+
+    const {
+      therapist_id: therapistId,
+      therapist_email: therapistEmail,
+      therapist_name: therapistName,
+      client_name: clientName,
+      client_email: clientEmail,
+      client_whatsapp: clientWhatsapp,
+      start_time: startTime,
+      requested_service: requestedService,
+    } = pendingCheckout;
+
+    console.log(`[PagBank Webhook] Pagamento confirmado para: ${clientName} com terapeuta: ${therapistEmail} (ref: ${referenceId})`);
+
+    let durationMinutes = 60;
+    let serviceTitle = requestedService || "Sessão Lótus";
+
+    if (requestedService) {
+      const { data: services } = await supabase.from('services').select('slug, title, duration');
+      const service = services?.find(s => s.slug === requestedService || s.title === requestedService);
+      if (service) {
+        serviceTitle = service.title;
+        if (service.duration) {
+          durationMinutes = parseDuration(service.duration);
+        }
+      }
+    }
+
+    const start = new Date(startTime);
+    const end = addMinutes(start, durationMinutes);
+
+    // TRAVA 2: Verificar no banco se já existe agendamento para este mesmo horário/terapeuta/cliente
+    const { data: existingAppts } = await supabase
+      .from('appointments')
+      .select('id')
+      .eq('therapist_id', therapistId)
+      .eq('start_time', start.toISOString())
+      .eq('client_email', clientEmail);
+
+    if (existingAppts && existingAppts.length > 0) {
+      console.log(`[DUPLICATA BLOQUEADA] Já existe agendamento no banco para ${clientEmail} às ${start.toISOString()}`);
+      // Marcar como completed para evitar reprocessamento
+      await supabase.from('pending_checkouts')
+        .update({ status: 'completed' })
+        .eq('reference_id', referenceId);
+      return NextResponse.json({ received: true, duplicate: true });
+    }
+
+    // PASSO 1: Salvar no banco PRIMEIRO (para que requisições subsequentes encontrem o registro)
+    let appointmentId: string | null = null;
+    if (therapistId) {
+      const { data: inserted, error: dbError } = await supabase.from('appointments').insert({
+        therapist_id: therapistId,
+        client_name: clientName,
+        client_email: clientEmail,
+        client_whatsapp: clientWhatsapp,
+        service_name: serviceTitle,
+        start_time: start.toISOString(),
+        end_time: end.toISOString(),
+        google_event_id: 'pending',
+        meet_link: null,
+      }).select('id').single();
+
+      if (dbError) {
+        console.error("[PagBank Webhook] Erro ao salvar no banco (Supabase):", dbError);
+      } else {
+        appointmentId = inserted?.id;
+      }
+    }
+
+    // PASSO 2: Criar no Google Calendar
+    const gcalEvent = await calendar.events.insert({
+      calendarId: therapistEmail,
+      sendUpdates: "all",
+      requestBody: {
+        summary: `${serviceTitle} - ${clientName}`,
+        description: `Email do cliente: ${clientEmail}\nWhatsApp: ${clientWhatsapp}\nPagamento confirmado via PagBank.`,
+        start: {
+          dateTime: start.toISOString(),
+          timeZone: "America/Sao_Paulo",
+        },
+        end: {
+          dateTime: end.toISOString(),
+          timeZone: "America/Sao_Paulo",
+        }
+      }
+    });
+
+    // PASSO 3: Atualizar o banco com os dados do Google Calendar
+    if (appointmentId && gcalEvent.data.id) {
+      await supabase.from('appointments')
+        .update({
+          google_event_id: gcalEvent.data.id,
+          meet_link: gcalEvent.data.hangoutLink,
+        })
+        .eq('id', appointmentId);
+    }
+
+    // PASSO 4: Marcar o checkout pendente como concluído
+    await supabase.from('pending_checkouts')
+      .update({ 
+        status: 'completed',
+        completed_at: new Date().toISOString(),
+        pagbank_order_id: payload.id || null,
+      })
+      .eq('reference_id', referenceId);
+
+    console.log(`✅ Agendamento criado com sucesso: ${serviceTitle} - ${clientName} em ${start.toISOString()}`);
+
+    // PASSO 5: Buscar dados do terapeuta (whatsapp) e enviar e-mails de notificação
+    let therapistDisplayName = therapistName || 'Terapeuta';
+    let therapistWhatsapp = '';
+    if (therapistId) {
+      const { data: therapistData } = await supabase
+        .from('therapists')
+        .select('name, whatsapp')
+        .eq('id', therapistId)
+        .single();
+      if (therapistData) {
+        therapistDisplayName = therapistData.name || therapistDisplayName;
+        therapistWhatsapp = therapistData.whatsapp || '';
+      }
+    }
+
+    await sendBookingNotificationEmails({
+      clientName,
+      clientEmail,
+      clientWhatsapp: clientWhatsapp || '',
+      therapistName: therapistDisplayName,
+      therapistEmail,
+      therapistWhatsapp,
+      serviceName: serviceTitle,
+      dateFormatted: format(start, "dd 'de' MMMM 'de' yyyy", { locale: ptBR }),
+      timeFormatted: format(start, 'HH:mm', { locale: ptBR }),
+      dayOfWeek: format(start, 'EEEE', { locale: ptBR }),
+    });
+
+  } catch (error) {
+    console.error("[PagBank Webhook] Erro ao processar agendamento pós-pagamento:", error);
+  } finally {
+    // Liberar a trava após finalizar (com ou sem erro)
+    processingEvents.delete(referenceId);
+  }
+
+  return NextResponse.json({ received: true });
+}

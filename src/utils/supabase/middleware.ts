@@ -36,10 +36,13 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   // Here we can add route protection.
-  // Protect the entire /agendamento route
+  // Protect the /agendamento route, EXCETO /agendamento/sucesso
+  // A página de sucesso precisa funcionar sem login pois o redirect do PagBank
+  // chega via URL pública (sem cookies de sessão do usuário).
   if (
     !user &&
-    request.nextUrl.pathname.startsWith('/agendamento')
+    request.nextUrl.pathname.startsWith('/agendamento') &&
+    !request.nextUrl.pathname.startsWith('/agendamento/sucesso')
   ) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone()
