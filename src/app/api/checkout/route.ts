@@ -60,12 +60,15 @@ export async function POST(req: Request) {
       );
     }
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-    const webhookUrl = process.env.PAGBANK_WEBHOOK_URL || `${siteUrl}/api/webhooks/pagbank`;
-    // PagBank exige URL pública no redirect_url — usar a base do webhook URL se disponível
-    const publicBaseUrl = process.env.PAGBANK_WEBHOOK_URL 
-      ? process.env.PAGBANK_WEBHOOK_URL.replace('/api/webhooks/pagbank', '')
-      : siteUrl;
+    const host = req.headers.get('host');
+    const protocol = req.headers.get('x-forwarded-proto') || 'http';
+    const originUrl = host ? `${protocol}://${host}` : (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000');
+    
+    // Webhook deve sempre usar a URL pública do túnel (configurada no .env)
+    const webhookUrl = process.env.PAGBANK_WEBHOOK_URL || `${originUrl}/api/webhooks/pagbank`;
+    
+    // O redirecionamento após o pagamento deve voltar para onde o usuário estava acessando (ex: IP local)
+    const redirectBaseUrl = originUrl;
 
     // Criar o Checkout no PagBank
     const checkoutResponse = await createPagBankCheckout({
@@ -73,7 +76,7 @@ export async function POST(req: Request) {
       itemName: `Taxa de Reserva - ${requestedService || 'Atendimento Terapêutico'}`,
       itemDescription: `Sessão com ${therapistName} - ${new Date(startTime).toLocaleString('pt-BR')}`,
       amountInCents: Math.round(reservationFee * 100), // PagBank usa centavos
-      redirectUrl: `${publicBaseUrl}/agendamento/sucesso?ref=${referenceId}`,
+      redirectUrl: `${redirectBaseUrl}/agendamento/sucesso?ref=${referenceId}`,
       notificationUrls: [webhookUrl],
       paymentNotificationUrls: [webhookUrl],
       customerName: clientName,

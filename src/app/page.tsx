@@ -1,46 +1,32 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { createClient } from "@/utils/supabase/client";
+import { createClient } from "@supabase/supabase-js";
 import { PageBlock } from "@/lib/types";
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
 import { LotusParallax } from "@/components/ui/LotusParallax";
-import { Loader2 } from "lucide-react";
 
-export default function Home() {
-  const [blocks, setBlocks] = useState<PageBlock[] | null>(null);
+export const dynamic = 'force-dynamic';
 
-  useEffect(() => {
-    const supabase = createClient();
-    async function fetchActiveBlocks() {
-      const { data, error } = await supabase
-        .from('page_blocks')
-        .select('*')
-        .eq('is_active', true)
-        .order('order', { ascending: true });
-        
-      if (!error && data) {
-        const homeBlocks = data.filter(b => !b.content?.page || b.content.page === 'home');
-        setBlocks(homeBlocks);
-      } else {
-        setBlocks([]);
-      }
-    }
-    fetchActiveBlocks();
-  }, []);
+export default async function Home() {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  const { data, error } = await supabase
+    .from('page_blocks')
+    .select('*')
+    .eq('is_active', true)
+    .order('order', { ascending: true });
+    
+  let blocks: PageBlock[] = [];
+  
+  if (!error && data) {
+    blocks = data.filter(b => !b.content?.page || b.content.page === 'home') as PageBlock[];
+  }
 
   return (
     <>
       <LotusParallax />
-
-      {blocks === null ? (
-        <div className="min-h-screen flex items-center justify-center text-gold-500">
-           <Loader2 className="animate-spin mr-3" size={24} />
-           <span className="tracking-widest uppercase text-sm">Carregando a Essência Lótus...</span>
-        </div>
-      ) : (
-        <BlockRenderer blocks={blocks} />
-      )}
+      <BlockRenderer blocks={blocks} />
     </>
   );
 }

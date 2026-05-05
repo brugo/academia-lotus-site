@@ -7,7 +7,7 @@ export function TextoNarrativaBlock({ block }: { block: PageBlock }) {
   const content = block.content as unknown as TextoNarrativaContent;
 
   return (
-    <div className="w-full relative z-10 py-24 md:py-32 px-6">
+    <div className="w-full relative z-10 py-16 md:py-32 px-6">
       <div className="container mx-auto">
         <div className="max-w-4xl mx-auto text-center relative">
           

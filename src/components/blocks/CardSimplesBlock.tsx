@@ -57,10 +57,6 @@ function CardVisual({ item, index, isMobile }: { item: CardItem; index: number; 
 
 /* ---- Lightbox Renderer (reutiliza o mesmo padrão do DestaqueBlock) ---- */
 function CardLightbox({ item, isOpen, onClose }: { item: CardItem; isOpen: boolean; onClose: () => void }) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => { setMounted(true); }, []);
-
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -70,7 +66,7 @@ function CardLightbox({ item, isOpen, onClose }: { item: CardItem; isOpen: boole
     return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
 
-  if (!isOpen || !mounted) return null;
+  if (!isOpen) return null;
 
   const lbType = item.lightbox_type || 'text';
 
@@ -78,12 +74,20 @@ function CardLightbox({ item, isOpen, onClose }: { item: CardItem; isOpen: boole
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 transition-all" aria-modal="true" role="dialog">
       <div
         className="absolute inset-0 bg-black/80 backdrop-blur-xl transition-opacity animate-in fade-in duration-500"
-        onClick={onClose}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onClose();
+        }}
       />
 
       <div className="relative z-10 bg-gradient-to-br from-midnight-900 to-midnight-950 border border-gold-500/30 rounded-2xl md:rounded-3xl shadow-[0_0_80px_-15px_rgba(212,175,55,0.4)] w-full max-w-4xl max-h-[90vh] min-h-[200px] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-500 ring-1 ring-white/5">
         <button
-          onClick={onClose}
+          onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onClose();
+        }}
           className="absolute top-4 right-4 z-50 p-2 bg-black/60 hover:bg-gold-500/20 text-white/70 hover:text-white rounded-full backdrop-blur-md transition-all border border-white/5 hover:border-gold-500/40"
         >
           <X size={20} />
@@ -297,7 +301,11 @@ export function CardSimplesBlock({ block }: { block: PageBlock }) {
                item.action_type === 'lightbox' ? (
                  <button
                    key={index}
-                   onClick={() => setOpenLightboxIdx(index)}
+                   onClick={(e) => {
+                     e.preventDefault();
+                     e.stopPropagation();
+                     setOpenLightboxIdx(index);
+                   }}
                    className={`${mobileCardClasses} text-left w-full cursor-pointer`}
                  >
                    <CardVisual item={item} index={index} isMobile />

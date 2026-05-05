@@ -39,11 +39,23 @@ function parseDuration(durationStr: string): number {
  */
 export async function POST(req: Request) {
   let payload: any;
+  const contentType = req.headers.get('content-type') || '';
 
   try {
-    payload = await req.json();
+    if (contentType.includes('application/json')) {
+      payload = await req.json();
+    } else {
+      // Se não for JSON, tenta tratar como Form Data (comum no PagBank antigo/notificações)
+      const formData = await req.formData();
+      payload = Object.fromEntries(formData.entries());
+    }
   } catch (error) {
     console.error('[PagBank Webhook] Erro ao parsear body:', error);
+    // Se falhou o parsing padrão, tenta texto puro para logar o que está vindo
+    try {
+      const text = await req.text();
+      console.log('[PagBank Webhook] Body bruto recebido (falha no parse):', text);
+    } catch (e) {}
     return NextResponse.json({ error: 'Invalid body' }, { status: 400 });
   }
 

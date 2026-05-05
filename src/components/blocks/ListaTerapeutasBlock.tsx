@@ -1,53 +1,46 @@
-"use client";
-
 import { RevealText } from "@/components/ui/RevealText";
 import Link from "next/link";
 import { Users } from "lucide-react";
 import type { PageBlock, ListaTerapeutasContent } from "@/lib/types";
 import { createClient } from "@supabase/supabase-js";
-import { useEffect, useState } from "react";
 import type { DatabaseTherapist } from "@/lib/types";
 
-export function ListaTerapeutasBlock({ block }: { block: PageBlock }) {
+export async function ListaTerapeutasBlock({ block }: { block: PageBlock }) {
   const content = (block.content as unknown) as ListaTerapeutasContent;
-  const [therapists, setTherapists] = useState<DatabaseTherapist[]>([]);
+  let therapists: DatabaseTherapist[] = [];
 
-  // Fetch therapists filtered by selected IDs
-  useEffect(() => {
-    async function fetchTherapists() {
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      );
+  try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
 
-      const ids = content.therapist_ids;
+    const ids = content.therapist_ids;
 
-      if (ids && ids.length > 0) {
-        // Fetch only selected therapists
-        const { data } = await supabase
-          .from("therapists")
-          .select("*")
-          .in("id", ids)
-          .eq("is_active", true);
-        if (data) {
-          // Preserve the order from therapist_ids
-          const ordered = ids
-            .map(id => (data as DatabaseTherapist[]).find(t => t.id === id))
-            .filter(Boolean) as DatabaseTherapist[];
-          setTherapists(ordered);
-        }
-      } else {
-        // Fallback: show all active therapists (max 6)
-        const { data } = await supabase
-          .from("therapists")
-          .select("*")
-          .eq("is_active", true)
-          .limit(6);
-        if (data) setTherapists(data as DatabaseTherapist[]);
+    if (ids && ids.length > 0) {
+      const { data } = await supabase
+        .from("therapists")
+        .select("*")
+        .in("id", ids)
+        .eq("is_active", true);
+      
+      if (data) {
+        const ordered = ids
+          .map(id => (data as DatabaseTherapist[]).find(t => t.id === id))
+          .filter(Boolean) as DatabaseTherapist[];
+        therapists = ordered;
       }
+    } else {
+      const { data } = await supabase
+        .from("therapists")
+        .select("*")
+        .eq("is_active", true)
+        .limit(6);
+      if (data) therapists = data as DatabaseTherapist[];
     }
-    fetchTherapists();
-  }, [content.therapist_ids]);
+  } catch (error) {
+    console.error("Erro ao buscar terapeutas:", error);
+  }
 
   return (
     <>

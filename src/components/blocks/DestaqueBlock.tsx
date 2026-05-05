@@ -93,7 +93,11 @@ export function DestaqueBlock({ block }: { block: PageBlock }) {
                   <>
                     {content.button2_action === 'lightbox' ? (
                       <button 
-                        onClick={() => setIsLightboxOpen(true)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setIsLightboxOpen(true);
+                        }}
                         className="w-full sm:w-auto px-8 py-4 bg-transparent border border-white/10 text-white rounded-full hover:bg-white/5 transition-all text-sm tracking-wide text-center"
                       >
                         {content.button2_text}
@@ -127,12 +131,16 @@ export function DestaqueBlock({ block }: { block: PageBlock }) {
       </div>
 
       {/* Lightbox Modal rendered via Portal */}
-      {isLightboxOpen && mounted && createPortal(
+      {isLightboxOpen && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 transition-all" aria-modal="true" role="dialog">
           {/* Backdrop Escuro para cobrir todo site (o portal evita que o z-index ou relative dos containeres pais bloqueie) */}
           <div 
             className="absolute inset-0 bg-black/80 backdrop-blur-xl transition-opacity animate-in fade-in duration-500" 
-            onClick={() => setIsLightboxOpen(false)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsLightboxOpen(false);
+            }}
           />
           
           {/* Modal Container Premium */}

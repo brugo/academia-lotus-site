@@ -120,7 +120,11 @@ export function DuploCardBlock({ block }: { block: PageBlock }) {
                     )
                   ) : (
                     <button 
-                      onClick={() => setOpenLightboxId(id)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setOpenLightboxId(id);
+                      }}
                       className="w-full sm:w-auto px-6 py-3 bg-transparent border border-white/20 text-white rounded-full hover:bg-white/5 transition-all text-sm tracking-wide text-center"
                     >
                       {card.button2_text}

@@ -39,7 +39,7 @@ export function HeroBlock({ block }: { block: PageBlock }) {
   const bgImage = block.image_url || "/hero-bg.png";
 
   return (
-    <section ref={heroRef} className="relative min-h-screen flex flex-col justify-center items-center pt-24 pb-32 overflow-hidden w-full">
+    <section ref={heroRef} className="relative min-h-[85svh] md:min-h-screen flex flex-col justify-center items-center pt-24 pb-16 md:pb-32 overflow-hidden w-full">
       {/* Animated Background Image - desktop */}
       <motion.div 
         className="absolute inset-0 -z-20 w-full h-full hidden md:block"

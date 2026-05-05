@@ -16,13 +16,21 @@ interface TherapistFlipCardProps {
 
 export function TherapistFlipCard({ id, name, specialty, bio, photoUrl, services }: TherapistFlipCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
+  const isTouchDevice = typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches;
 
   return (
     <div 
-      className="flip-card-container h-[520px] group"
+      className="flip-card-container h-[520px] group cursor-pointer"
       style={{ perspective: "1200px" }}
-      onMouseEnter={() => setIsFlipped(true)}
-      onMouseLeave={() => setIsFlipped(false)}
+      onMouseEnter={() => {
+        if (!isTouchDevice) setIsFlipped(true);
+      }}
+      onMouseLeave={() => {
+        if (!isTouchDevice) setIsFlipped(false);
+      }}
+      onClick={() => {
+        if (isTouchDevice) setIsFlipped(prev => !prev);
+      }}
     >
       <div 
         className="flip-card-inner relative w-full h-full transition-transform duration-700 ease-out"
@@ -69,7 +77,8 @@ export function TherapistFlipCard({ id, name, specialty, bio, photoUrl, services
 
             <p className="text-slate-300/70 text-xs font-light tracking-wider uppercase flex items-center gap-2">
               <RotateCcw size={12} className="text-gold-500/60 group-hover:text-gold-400 transition-colors" />
-              Passe o mouse para saber mais
+              <span className="hidden md:inline">Passe o mouse para saber mais</span>
+              <span className="md:hidden">Toque para saber mais</span>
             </p>
           </div>
 

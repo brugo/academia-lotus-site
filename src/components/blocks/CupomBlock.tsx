@@ -10,16 +10,33 @@ export function CupomBlock({ block }: { block: PageBlock }) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(content.coupon_code || "LOTUS2026");
+    const code = content.coupon_code || "LOTUS2026";
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(code).catch(() => {});
+    } else {
+      const textArea = document.createElement("textarea");
+      textArea.value = code;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-9999px";
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy');
+      } catch (err) {}
+      document.body.removeChild(textArea);
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
   };
 
-  // Format expiry date
+  // Format expiry date safely without locale-dependent functions to avoid hydration mismatch on mobile
   const formatExpiry = (dateStr: string) => {
     try {
-      const date = new Date(dateStr + "T00:00:00");
-      return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
+      const [year, month, day] = dateStr.split("-");
+      if (year && month && day) {
+        return `${day}/${month}/${year}`;
+      }
+      return dateStr;
     } catch {
       return dateStr;
     }
