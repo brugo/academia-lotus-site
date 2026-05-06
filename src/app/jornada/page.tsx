@@ -80,6 +80,9 @@ export default async function JornadaPage() {
           </div>
 
           <div className="mt-4 md:mt-0 flex flex-col sm:flex-row gap-3 justify-center">
+            <Link href="/jornada/perfil" className="px-6 py-3 bg-white/5 hover:bg-white/10 text-white font-medium rounded-xl transition-all shadow-sm border border-white/10 text-sm flex items-center justify-center">
+              Editar Perfil
+            </Link>
             {isTherapist && (
               <Link href="/portal-terapeuta" className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-xl transition-all shadow-[0_0_15px_rgba(16,185,129,0.2)] text-sm flex items-center justify-center">
                 Portal do Terapeuta
