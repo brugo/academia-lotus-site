@@ -60,6 +60,16 @@ export async function POST(req: Request) {
       );
     }
 
+    // Se o usuário está logado, aproveitamos para atualizar o cadastro dele com Nome e WhatsApp
+    if (user?.id) {
+      await supabaseAdmin.auth.admin.updateUserById(user.id, {
+        user_metadata: { 
+          full_name: clientName, 
+          whatsapp: clientWhatsapp 
+        }
+      });
+    }
+
     const host = req.headers.get('host');
     const protocol = req.headers.get('x-forwarded-proto') || 'http';
     const originUrl = host ? `${protocol}://${host}` : (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000');
