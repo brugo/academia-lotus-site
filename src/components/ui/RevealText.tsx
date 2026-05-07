@@ -12,7 +12,7 @@ interface RevealTextProps {
 }
 
 export function RevealText({ children, delay = 0, className, element = "div", duration = 0.8 }: RevealTextProps) {
-  const MotionComponent = motion[element as keyof typeof motion] || motion.div;
+  const MotionComponent = (motion as any)[element as string] || motion.div;
 
   return (
     <MotionComponent

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { format } from 'date-fns';
-import ptBR from 'date-fns/locale/pt-BR';
+import { ptBR } from 'date-fns/locale/pt-BR';
 import { Clock, MessageCircle, User as UserIcon, X, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
 
 interface Appointment {

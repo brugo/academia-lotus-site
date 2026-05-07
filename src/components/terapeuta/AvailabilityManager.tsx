@@ -7,7 +7,7 @@ import {
   Loader2, CheckCircle2, AlertTriangle, ChevronDown, ChevronUp, X
 } from "lucide-react";
 import { format, addDays, startOfDay } from "date-fns";
-import ptBR from "date-fns/locale/pt-BR";
+import { ptBR } from "date-fns/locale/pt-BR";
 
 const DAYS_OF_WEEK = [
   { value: 0, label: "Domingo", short: "Dom" },

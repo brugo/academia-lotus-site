@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { format } from "date-fns";
-import ptBR from "date-fns/locale/pt-BR";
+import { ptBR } from "date-fns/locale/pt-BR";
 import { ArrowLeft, CheckCircle2, Lock, Loader2, Video } from "lucide-react";
 
 export function ConfirmationStep({ therapist, date, onBack, requestedService, user, reservationFee = 50 }: { therapist: any, date: Date, onBack: () => void, requestedService?: string, user?: any, reservationFee?: number }) {

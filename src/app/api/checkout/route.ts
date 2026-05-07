@@ -77,8 +77,11 @@ export async function POST(req: Request) {
     // Webhook deve sempre usar a URL pública do túnel (configurada no .env)
     const webhookUrl = process.env.PAGBANK_WEBHOOK_URL || `${originUrl}/api/webhooks/pagbank`;
     
-    // O redirecionamento após o pagamento deve voltar para onde o usuário estava acessando (ex: IP local)
-    const redirectBaseUrl = originUrl;
+    // O PagBank exige URLs públicas até mesmo para o redirecionamento (bloqueia localhost).
+    // Usamos a base da URL do webhook (o túnel do Cloudflare) para o redirectUrl.
+    const redirectBaseUrl = process.env.PAGBANK_WEBHOOK_URL 
+      ? process.env.PAGBANK_WEBHOOK_URL.replace('/api/webhooks/pagbank', '')
+      : originUrl;
 
     // Criar o Checkout no PagBank
     const checkoutResponse = await createPagBankCheckout({

@@ -33,7 +33,9 @@ export default async function AtendimentoPage({ params, searchParams }: { params
     short_subtitle: "A Jornada de Cura Começa Aqui",
     description: "Esta é uma técnica sagrada desenhada para restabelecer o balanço entre seu corpo, mente e alma. Nossos terapeutas conduzirão você através dos limiares da sua consciência para encontrar as respostas que você tanto busca nas galáxias interiores do seu próprio ser.",
     duration: "1h a 2h",
-    benefits: ["Paz interior imediata", "Autoconhecimento expandido", "Desbloqueio do fluxo energético", "Maior conexão espiritual com as esferas"]
+    benefits: ["Paz interior imediata", "Autoconhecimento expandido", "Desbloqueio do fluxo energético", "Maior conexão espiritual com as esferas"],
+    image_url: null,
+    base_price: 150
   };
 
   return (

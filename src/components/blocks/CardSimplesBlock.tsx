@@ -252,7 +252,7 @@ export function CardSimplesBlock({ block }: { block: PageBlock }) {
             <RevealText element="h2" className="font-serif text-3xl md:text-5xl text-gold-400 mb-8">
               {content.title || "Atravesse o Limiar da Cura"}
             </RevealText>
-            <RevealText delay={0.2} className="w-12 h-[1px] bg-gold-500/50 mx-auto mb-8"></RevealText>
+            <RevealText delay={0.2} className="w-12 h-[1px] bg-gold-500/50 mx-auto mb-8">&nbsp;</RevealText>
             <RevealText delay={0.3} element="p" className="text-slate-400 text-xl font-light leading-relaxed">
               {content.subtitle || "Deixe que nossas egrégoras de luz amparem você através dos sagrados ensinamentos."}
             </RevealText>

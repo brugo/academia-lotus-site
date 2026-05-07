@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Calendar, Clock, Loader2 } from "lucide-react";
 import { format, addDays, isSameDay, startOfDay, parseISO, isBefore, addHours, endOfDay } from "date-fns";
-import ptBR from "date-fns/locale/pt-BR";
+import { ptBR } from "date-fns/locale/pt-BR";
 
 type TimeSlot = { start: string; end: string };
 type AvailabilityRule = {
