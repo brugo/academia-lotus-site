@@ -22,10 +22,13 @@ function LoginContent() {
   
   const supabase = createClient();
 
-  // Helper para garantir que o redirecionamento não vá para 0.0.0.0 (que o Windows bloqueia)
   const getSafeOrigin = () => {
-    if (typeof window === 'undefined') return '';
-    return window.location.origin.replace('0.0.0.0', 'localhost');
+    if (typeof window === 'undefined') return 'https://academiaespiritualdelotus.com';
+    // Se estiver no localhost, mantém. Se for produção, força o HTTPS do domínio principal
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      return window.location.origin;
+    }
+    return 'https://academiaespiritualdelotus.com';
   };
 
   const handleGoogleLogin = async () => {
@@ -35,7 +38,7 @@ function LoginContent() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${getSafeOrigin()}/auth/callback?next=${redirectTo}`
+          redirectTo: `${getSafeOrigin()}/auth/callback` // Removido o parâmetro ?next para evitar bloqueio do Supabase
         }
       });
       if (error) throw error;
