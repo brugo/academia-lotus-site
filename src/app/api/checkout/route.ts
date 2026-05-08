@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createPagBankCheckout, extractPaymentLink } from '@/lib/pagbank';
+import { getOrCreateAsaasCustomer, createAsaasPayment } from '@/lib/asaas';
 import { createClient } from '@/utils/supabase/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { v4 as uuidv4 } from 'uuid';
@@ -19,7 +19,8 @@ export async function POST(req: Request) {
       therapistName, 
       clientName, 
       clientEmail, 
-      clientWhatsapp, 
+      clientWhatsapp,
+      clientCpf,
       startTime, 
       requestedService,
       price 
@@ -73,44 +74,43 @@ export async function POST(req: Request) {
     const host = req.headers.get('host');
     const protocol = req.headers.get('x-forwarded-proto') || 'http';
     const originUrl = host ? `${protocol}://${host}` : (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000');
-    
-    // Webhook deve sempre usar a URL pública do túnel (configurada no .env)
-    const webhookUrl = process.env.PAGBANK_WEBHOOK_URL || `${originUrl}/api/webhooks/pagbank`;
-    
-    // O PagBank exige URLs públicas até mesmo para o redirecionamento (bloqueia localhost).
-    // No ambiente local, usamos o túnel do Cloudflare. Em produção, forçamos o domínio oficial.
+    // URL de sucesso (retorno após o pagamento)
     let redirectBaseUrl = originUrl;
     if (process.env.NODE_ENV === 'production' || host?.includes('vercel.app')) {
       redirectBaseUrl = 'https://academiaespiritualdelotus.com';
-    } else if (process.env.PAGBANK_WEBHOOK_URL) {
-      redirectBaseUrl = process.env.PAGBANK_WEBHOOK_URL.replace('/api/webhooks/pagbank', '');
+    } else if (process.env.ASAAS_WEBHOOK_URL) {
+      redirectBaseUrl = process.env.ASAAS_WEBHOOK_URL.replace('/api/webhooks/asaas', '');
     }
 
-    // Criar o Checkout no PagBank
-    const checkoutResponse = await createPagBankCheckout({
-      referenceId,
-      itemName: `Taxa de Reserva - ${requestedService || 'Atendimento Terapêutico'}`,
-      itemDescription: `Sessão com ${therapistName} - ${new Date(startTime).toLocaleString('pt-BR')}`,
-      amountInCents: Math.round(reservationFee * 100), // PagBank usa centavos
-      redirectUrl: `${redirectBaseUrl}/agendamento/sucesso?ref=${referenceId}`,
-      notificationUrls: [webhookUrl],
-      paymentNotificationUrls: [webhookUrl],
-      customerName: clientName,
-      customerEmail: clientEmail,
-      expirationMinutes: 120, // 2 horas
+    const successUrl = `${redirectBaseUrl}/agendamento/sucesso?ref=${referenceId}`;
+
+    // 1. Obter ou criar o cliente no Asaas usando o CPF
+    const customer = await getOrCreateAsaasCustomer(clientName, clientCpf, clientEmail, clientWhatsapp);
+    
+    if (!customer || !customer.id) {
+      throw new Error('Falha ao obter ID do cliente no Asaas.');
+    }
+
+    // 2. Criar a cobrança (Checkout) no Asaas
+    const checkoutResponse = await createAsaasPayment({
+      customerId: customer.id,
+      amount: reservationFee, // Asaas usa o valor em Reais (ex: 50.00)
+      dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // +2 dias
+      description: `Taxa de Reserva - ${requestedService || 'Atendimento Terapêutico'} com ${therapistName}`,
+      externalReference: referenceId, // ID único para cruzar no Webhook
+      successUrl: successUrl
     });
 
-    // Salvar o ID do checkout do PagBank para referência futura
-    const pagbankCheckoutId = checkoutResponse.id;
+    // Salvar o ID do checkout do Asaas para referência futura
     await supabaseAdmin.from('pending_checkouts')
-      .update({ pagbank_checkout_id: pagbankCheckoutId })
+      .update({ pagbank_checkout_id: checkoutResponse.id }) // Usamos a mesma coluna antiga para evitar quebrar banco
       .eq('reference_id', referenceId);
 
-    // Extrair o link de pagamento da resposta do PagBank
-    const paymentUrl = extractPaymentLink(checkoutResponse);
+    // Extrair o link de pagamento (Fatura / Checkout) da resposta do Asaas
+    const paymentUrl = checkoutResponse.invoiceUrl;
 
     if (!paymentUrl) {
-      console.error('[Checkout] Link de pagamento não encontrado na resposta:', checkoutResponse);
+      console.error('[Checkout] invoiceUrl não encontrado na resposta:', checkoutResponse);
       return NextResponse.json(
         { error: 'Erro ao gerar link de pagamento.' },
         { status: 500 }

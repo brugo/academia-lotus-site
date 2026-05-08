@@ -13,20 +13,20 @@ export function ConfirmationStep({ therapist, date, onBack, requestedService, us
   const [formData, setFormData] = useState({
     name: user?.user_metadata?.full_name || "",
     email: user?.email || "",
-    phone: "" // Novo campo de WhatsApp
+    phone: "",
+    cpf: "" // Necessário para Asaas
   });
 
   const handleBookingClick = async () => {
     // Basic validation
-    if (!formData.name || !formData.email || !formData.phone) {
-      alert("Por favor, preencha todos os campos, incluindo o WhatsApp.");
+    if (!formData.name || !formData.email || !formData.phone || !formData.cpf) {
+      alert("Por favor, preencha todos os campos, incluindo o CPF.");
       return;
     }
 
     setLoading(true);
 
     try {
-      // Chama a nova API de Checkout do Stripe
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -37,6 +37,7 @@ export function ConfirmationStep({ therapist, date, onBack, requestedService, us
           clientName: formData.name,
           clientEmail: formData.email,
           clientWhatsapp: formData.phone,
+          clientCpf: formData.cpf.replace(/\D/g, ''),
           startTime: date.toISOString(),
           requestedService: requestedService
         })
@@ -45,7 +46,6 @@ export function ConfirmationStep({ therapist, date, onBack, requestedService, us
       const result = await res.json();
       
       if (result.url) {
-        // Redireciona o usuário para a página de pagamento seguro do Stripe
         window.location.href = result.url;
       } else {
         alert("Erro ao gerar link de pagamento: " + (result.error || "Tente novamente."));
@@ -101,7 +101,6 @@ export function ConfirmationStep({ therapist, date, onBack, requestedService, us
 
   return (
     <div className="w-full max-w-3xl mx-auto pb-32">
-      {/* TODO: EXPERIMENTO DO BOTAO ACCEPT - IGNORAR ESTA LINHA */}
       <button 
         onClick={onBack}
         className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-8 group"
@@ -140,27 +139,48 @@ export function ConfirmationStep({ therapist, date, onBack, requestedService, us
                 placeholder="clara@email.com" 
               />
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-300">WhatsApp <span className="text-gold-500">*</span></label>
-              <input 
-                type="tel" 
-                value={formData.phone}
-                onChange={e => {
-                  let value = e.target.value.replace(/\D/g, '');
-                  value = value.substring(0, 11);
-                  if (value.length > 2) value = `(${value.substring(0, 2)}) ${value.substring(2)}`;
-                  if (value.length > 9) value = `${value.substring(0, 10)}-${value.substring(10)}`;
-                  setFormData({...formData, phone: value});
-                }}
-                className="w-full bg-midnight-950/50 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-gold-500 transition-colors" 
-                placeholder="(11) 99999-9999"
-                required 
-              />
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-300">WhatsApp <span className="text-gold-500">*</span></label>
+                <input 
+                  type="tel" 
+                  value={formData.phone}
+                  onChange={e => {
+                    let value = e.target.value.replace(/\D/g, '');
+                    value = value.substring(0, 11);
+                    if (value.length > 2) value = `(${value.substring(0, 2)}) ${value.substring(2)}`;
+                    if (value.length > 9) value = `${value.substring(0, 10)}-${value.substring(10)}`;
+                    setFormData({...formData, phone: value});
+                  }}
+                  className="w-full bg-midnight-950/50 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-gold-500 transition-colors" 
+                  placeholder="(11) 99999-9999"
+                  required 
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-300">CPF <span className="text-gold-500">*</span></label>
+                <input 
+                  type="text" 
+                  value={formData.cpf}
+                  onChange={e => {
+                    let value = e.target.value.replace(/\D/g, '');
+                    value = value.substring(0, 11);
+                    if (value.length > 3) value = `${value.substring(0, 3)}.${value.substring(3)}`;
+                    if (value.length > 7) value = `${value.substring(0, 7)}.${value.substring(7)}`;
+                    if (value.length > 11) value = `${value.substring(0, 11)}-${value.substring(11)}`;
+                    setFormData({...formData, cpf: value});
+                  }}
+                  className="w-full bg-midnight-950/50 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-gold-500 transition-colors" 
+                  placeholder="000.000.000-00"
+                  required 
+                />
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Resumo e Pagamento (Mock) */}
+        {/* Resumo e Pagamento */}
         <div className="md:col-span-2 space-y-6">
           <div className="bg-gold-900/10 border border-gold-500/20 rounded-3xl p-6 relative overflow-hidden backdrop-blur-sm">
             <h3 className="text-white font-medium mb-6 flex items-center gap-2">
@@ -200,7 +220,7 @@ export function ConfirmationStep({ therapist, date, onBack, requestedService, us
           </div>
 
           <button 
-            disabled={loading || !formData.name || !formData.email || !formData.phone}
+            disabled={loading || !formData.name || !formData.email || !formData.phone || formData.cpf.length < 14}
             onClick={handleBookingClick}
             className="w-full px-6 py-4 bg-gold-600 hover:bg-gold-500 disabled:bg-slate-800 disabled:text-slate-500 text-midnight-950 font-medium rounded-2xl transition-all shadow-lg flex items-center justify-center gap-3"
           >
@@ -208,7 +228,7 @@ export function ConfirmationStep({ therapist, date, onBack, requestedService, us
             {loading ? "Sincronizando..." : "Prosseguir para Pagamento"}
           </button>
           <p className="text-center text-xs text-slate-500 mt-2 flex justify-center gap-1">
-            Integração segura com Stripe.
+            Pagamento Seguro com Asaas.
           </p>
         </div>
 
