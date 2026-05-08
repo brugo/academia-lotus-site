@@ -78,10 +78,13 @@ export async function POST(req: Request) {
     const webhookUrl = process.env.PAGBANK_WEBHOOK_URL || `${originUrl}/api/webhooks/pagbank`;
     
     // O PagBank exige URLs públicas até mesmo para o redirecionamento (bloqueia localhost).
-    // Usamos a base da URL do webhook (o túnel do Cloudflare) para o redirectUrl.
-    const redirectBaseUrl = process.env.PAGBANK_WEBHOOK_URL 
-      ? process.env.PAGBANK_WEBHOOK_URL.replace('/api/webhooks/pagbank', '')
-      : originUrl;
+    // No ambiente local, usamos o túnel do Cloudflare. Em produção, forçamos o domínio oficial.
+    let redirectBaseUrl = originUrl;
+    if (process.env.NODE_ENV === 'production' || host?.includes('vercel.app')) {
+      redirectBaseUrl = 'https://academiaespiritualdelotus.com';
+    } else if (process.env.PAGBANK_WEBHOOK_URL) {
+      redirectBaseUrl = process.env.PAGBANK_WEBHOOK_URL.replace('/api/webhooks/pagbank', '');
+    }
 
     // Criar o Checkout no PagBank
     const checkoutResponse = await createPagBankCheckout({

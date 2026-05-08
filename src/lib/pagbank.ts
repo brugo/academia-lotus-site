@@ -14,7 +14,9 @@ const PAGBANK_PRODUCTION_URL = 'https://api.pagseguro.com';
  * Retorna a URL base da API de acordo com o ambiente configurado.
  */
 export function getPagBankBaseUrl(): string {
-  const env = process.env.PAGBANK_ENV || 'sandbox';
+  // Em produção (Vercel), default para 'production'. No local, default para 'sandbox'.
+  const defaultEnv = process.env.NODE_ENV === 'production' ? 'production' : 'sandbox';
+  const env = process.env.PAGBANK_ENV || defaultEnv;
   return env === 'production' ? PAGBANK_PRODUCTION_URL : PAGBANK_SANDBOX_URL;
 }
 

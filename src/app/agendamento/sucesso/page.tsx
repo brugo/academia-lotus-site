@@ -30,7 +30,7 @@ export default async function SuccessPage({ searchParams }: { searchParams: Prom
       <div className="min-h-screen bg-midnight-950 flex flex-col items-center justify-center px-6 text-center">
         <h1 className="text-2xl text-white">Sessão não encontrada</h1>
         <p className="text-slate-400 mt-2">O link de pagamento pode ter expirado ou já foi processado.</p>
-        <a href={siteUrl} className="mt-6 px-6 py-3 bg-gold-600 text-midnight-950 rounded-xl">
+        <a href="/" className="mt-6 px-6 py-3 bg-gold-600 text-midnight-950 rounded-xl">
           Voltar ao Início
         </a>
       </div>
@@ -131,7 +131,7 @@ export default async function SuccessPage({ searchParams }: { searchParams: Prom
         </p>
         
         <a 
-          href={`${siteUrl}/jornada`}
+          href="/jornada"
           className="w-full px-6 py-4 bg-gold-600 hover:bg-gold-500 text-midnight-950 font-medium rounded-xl transition-all flex items-center justify-center gap-2 group"
         >
           Acessar Meu Perfil 
