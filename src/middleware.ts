@@ -1,7 +1,9 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { updateSession } from '@/utils/supabase/middleware'
 
-export async function proxy(request: NextRequest) {
+import { createServerClient } from '@supabase/ssr'
+
+export async function middleware(request: NextRequest) {
   const response = await updateSession(request)
   const url = request.nextUrl.clone()
 
@@ -10,6 +12,32 @@ export async function proxy(request: NextRequest) {
     return response
   }
 
+  // Cria um cliente supabase local para ler o status de manutenção
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() { return request.cookies.getAll() },
+        setAll() {} // Não precisamos setar cookies nesta leitura simples
+      }
+    }
+  )
+
+  const { data: maintenanceData } = await supabase
+    .from('system_settings')
+    .select('value')
+    .eq('id', 'maintenance_mode')
+    .single()
+
+  const isMaintenanceMode = maintenanceData?.value?.enabled === true;
+
+  // Se não estiver em manutenção, deixa passar tudo
+  if (!isMaintenanceMode) {
+    return response
+  }
+
+  // REGRAS DE EXCEÇÃO (QUANDO EM MANUTENÇÃO):
   // Ignora rotas de API, autenticação, painéis administrativos e arquivos estáticos
   if (
     url.pathname.startsWith('/api/') || 
@@ -19,13 +47,12 @@ export async function proxy(request: NextRequest) {
     url.pathname.startsWith('/admin') ||
     url.pathname.startsWith('/portal-terapeuta') ||
     url.pathname.startsWith('/jornada') ||
-    url.pathname.startsWith('/agendamento') || // Liberação para testes do checkout
     url.pathname.includes('.') // Arquivos estáticos (favicon.ico, imagens, etc)
   ) {
     return response
   }
 
-  // Redireciona todas as outras rotas (inclusive a Home) para a página de construção
+  // Se estiver em manutenção e não for nenhuma rota de exceção, bloqueia (incluindo /agendamento)
   url.pathname = '/em-construcao'
   const redirectResponse = NextResponse.redirect(url)
   

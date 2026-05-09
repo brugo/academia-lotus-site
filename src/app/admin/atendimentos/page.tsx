@@ -35,6 +35,9 @@ export default function ServicesAdminPage() {
   const [reservationFee, setReservationFee] = useState<number>(50);
   const [isSavingFee, setIsSavingFee] = useState(false);
   
+  const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
+  const [isSavingMaintenance, setIsSavingMaintenance] = useState(false);
+  
   const [formData, setFormData] = useState<Partial<DatabaseService>>({
     title: "", description: "", short_subtitle: "", duration: "1h", icon: "Star", image_url: "", is_active: true, benefits: [], order_index: 0, is_featured: false, base_price: 150
   });
@@ -48,17 +51,31 @@ export default function ServicesAdminPage() {
 
   const fetchData = async () => {
     setLoading(true);
-    const [sRes, tRes, feeRes] = await Promise.all([
+    const [sRes, tRes, feeRes, maintenanceRes] = await Promise.all([
       supabase.from("services").select("*").order("order_index", { ascending: true }),
       supabase.from("therapists").select("*").order("name", { ascending: true }),
-      supabase.from("system_settings").select("value").eq("id", "reservation_fee").single()
+      supabase.from("system_settings").select("value").eq("id", "reservation_fee").single(),
+      supabase.from("system_settings").select("value").eq("id", "maintenance_mode").single()
     ]);
     
     if (sRes.data) setServices(sRes.data);
     if (tRes.data) setTherapists(tRes.data as DatabaseTherapist[]);
     if (feeRes.data && feeRes.data.value) setReservationFee(feeRes.data.value.amount || 50);
+    if (maintenanceRes.data && maintenanceRes.data.value) setIsMaintenanceMode(maintenanceRes.data.value.enabled === true);
     
     setLoading(false);
+  };
+
+  const handleToggleMaintenance = async () => {
+    setIsSavingMaintenance(true);
+    const newValue = !isMaintenanceMode;
+    const { error } = await supabase.from('system_settings').upsert({ id: 'maintenance_mode', value: { enabled: newValue } });
+    if (!error) {
+      setIsMaintenanceMode(newValue);
+    } else {
+      alert('Erro ao alterar o status do site.');
+    }
+    setIsSavingMaintenance(false);
   };
 
   const handleDragStart = (index: number) => setDraggedIdx(index);
@@ -233,17 +250,36 @@ export default function ServicesAdminPage() {
       {activeTab === 'content' && (
         <div className="space-y-8">
           
-          <div className="bg-midnight-950/50 p-6 rounded-2xl border border-white/5 shadow-inner mb-8">
-            <h3 className="text-lg font-serif text-white mb-2">Taxa de Reserva Global</h3>
-            <p className="text-slate-400 text-sm mb-4">Este é o valor cobrado via Stripe no ato do agendamento para confirmar a reserva (sinal), independente do valor total da técnica.</p>
-            <div className="flex gap-4 max-w-sm">
-              <div className="relative flex-1">
-                <span className="absolute left-4 top-3.5 text-slate-400">R$</span>
-                <input type="number" value={reservationFee} onChange={e => setReservationFee(Number(e.target.value))} className="w-full bg-midnight-900 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white focus:outline-none focus:border-gold-500" />
+          <div className="bg-midnight-950/50 p-6 rounded-2xl border border-white/5 shadow-inner mb-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+              <h3 className="text-lg font-serif text-white mb-2">Taxa de Reserva Global</h3>
+              <p className="text-slate-400 text-sm mb-4">Este é o valor cobrado via Asaas no ato do agendamento para confirmar a reserva (sinal), independente do valor total da técnica.</p>
+              <div className="flex gap-4 max-w-sm">
+                <div className="relative flex-1">
+                  <span className="absolute left-4 top-3.5 text-slate-400">R$</span>
+                  <input type="number" value={reservationFee} onChange={e => setReservationFee(Number(e.target.value))} className="w-full bg-midnight-900 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white focus:outline-none focus:border-gold-500" />
+                </div>
+                <button onClick={handleSaveFee} disabled={isSavingFee} className="px-6 bg-gold-600 hover:bg-gold-500 text-midnight-950 font-medium rounded-xl whitespace-nowrap">
+                  {isSavingFee ? 'Salvando...' : 'Salvar Taxa'}
+                </button>
               </div>
-              <button onClick={handleSaveFee} disabled={isSavingFee} className="px-6 bg-gold-600 hover:bg-gold-500 text-midnight-950 font-medium rounded-xl whitespace-nowrap">
-                {isSavingFee ? 'Salvando...' : 'Salvar Taxa'}
-              </button>
+            </div>
+
+            <div className="border-t md:border-t-0 md:border-l border-white/10 pt-6 md:pt-0 md:pl-8">
+              <h3 className="text-lg font-serif text-white mb-2">Modo Em Construção</h3>
+              <p className="text-slate-400 text-sm mb-4">Quando ativo, o público geral será redirecionado para a página de manutenção. Administradores e alunos com link direto de login continuarão com acesso normal ao sistema.</p>
+              <div className="flex items-center gap-4">
+                <button 
+                  onClick={handleToggleMaintenance} 
+                  disabled={isSavingMaintenance}
+                  className={`relative inline-flex h-8 w-16 items-center rounded-full transition-colors ${isMaintenanceMode ? 'bg-gold-500' : 'bg-slate-700'}`}
+                >
+                  <span className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${isMaintenanceMode ? 'translate-x-9' : 'translate-x-1'}`} />
+                </button>
+                <span className={`font-medium ${isMaintenanceMode ? 'text-gold-400' : 'text-slate-500'}`}>
+                  {isSavingMaintenance ? 'Salvando...' : isMaintenanceMode ? 'Site Bloqueado (Em Construção)' : 'Site Aberto ao Público'}
+                </span>
+              </div>
             </div>
           </div>
 
