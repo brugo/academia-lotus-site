@@ -19,6 +19,7 @@ export async function proxy(request: NextRequest) {
     url.pathname.startsWith('/admin') ||
     url.pathname.startsWith('/portal-terapeuta') ||
     url.pathname.startsWith('/jornada') ||
+    url.pathname.startsWith('/agendamento') || // Liberação para testes do checkout
     url.pathname.includes('.') // Arquivos estáticos (favicon.ico, imagens, etc)
   ) {
     return response
