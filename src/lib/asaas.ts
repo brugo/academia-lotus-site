@@ -48,17 +48,26 @@ export async function getOrCreateAsaasCustomer(name: string, cpfCnpj: string, em
   const searchData = await searchRes.json();
   
   if (searchData.data && searchData.data.length > 0) {
-    return searchData.data[0];
+    const existingCustomer = searchData.data[0];
+    // Se o cliente já existir mas estiver com notificações ativadas, nós desativamos
+    if (!existingCustomer.notificationDisabled) {
+      await asaasFetch(`/customers/${existingCustomer.id}`, {
+        method: 'POST', // Asaas usa POST para atualização de customer também
+        body: JSON.stringify({ notificationDisabled: true })
+      });
+    }
+    return existingCustomer;
   }
 
-  // 2. Se não existir, criar novo
+  // 2. Se não existir, criar novo desabilitando as notificações automáticas do Asaas
   const createRes = await asaasFetch('/customers', {
     method: 'POST',
     body: JSON.stringify({
       name,
       cpfCnpj,
       email,
-      mobilePhone: phone
+      mobilePhone: phone,
+      notificationDisabled: true // Bloqueia os e-mails e eventos de calendário feios do Asaas
     })
   });
   
