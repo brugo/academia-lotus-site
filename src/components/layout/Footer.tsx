@@ -18,10 +18,10 @@ export default function Footer() {
       <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12 z-10 relative">
         <div className="col-span-1 md:col-span-2">
           <Link href="/" className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-full bg-midnight-900 text-gold-400 flex items-center justify-center border border-white/10 overflow-hidden">
-              <Image src="/logo.png" alt="Academia Lótus" width={40} height={40} className="object-contain w-full h-full scale-[1.7]" />
+            <div className="w-12 h-12 flex items-center justify-center overflow-visible">
+              <Image src="/logo.png" alt="Academia de Lótus" width={48} height={48} className="object-contain w-full h-full drop-shadow-[0_0_15px_rgba(212,175,55,0.15)]" />
             </div>
-            <span className="font-serif text-2xl text-gold-400 tracking-wide">Academia Lótus</span>
+            <span className="font-serif text-2xl text-gold-400 tracking-wide">Academia de Lótus</span>
           </Link>
           <p className="text-slate-400 text-sm max-w-md leading-relaxed font-light">
             Um espaço dedicado ao seu desenvolvimento espiritual, autoconhecimento e bem-estar integral através de cursos e terapias conectadas com sua essência primária.
