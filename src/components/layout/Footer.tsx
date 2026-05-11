@@ -18,8 +18,8 @@ export default function Footer() {
       <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12 z-10 relative">
         <div className="col-span-1 md:col-span-2">
           <Link href="/" className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 flex items-center justify-center overflow-visible">
-              <Image src="/logo.png" alt="Academia de Lótus" width={48} height={48} className="object-contain w-full h-full drop-shadow-[0_0_15px_rgba(212,175,55,0.15)]" />
+            <div className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center overflow-visible">
+              <Image src="/logo.png" alt="Academia de Lótus" width={80} height={80} className="object-contain w-full h-full" />
             </div>
             <span className="font-serif text-2xl text-gold-400 tracking-wide">Academia de Lótus</span>
           </Link>
