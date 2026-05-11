@@ -1,6 +1,7 @@
 "use client";
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 
 export default function Footer() {
@@ -16,9 +17,9 @@ export default function Footer() {
       
       <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12 z-10 relative">
         <div className="col-span-1 md:col-span-2">
-           <Link href="/" className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-full bg-midnight-900 text-gold-400 flex items-center justify-center border border-white/10">
-              <span className="font-serif text-xl italic mt-1 mr-1">L</span>
+          <Link href="/" className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-full bg-midnight-900 text-gold-400 flex items-center justify-center border border-white/10 overflow-hidden">
+              <Image src="/logo.png" alt="Academia Lótus" width={40} height={40} className="object-cover" />
             </div>
             <span className="font-serif text-2xl text-gold-400 tracking-wide">Academia Lótus</span>
           </Link>
@@ -38,10 +39,10 @@ export default function Footer() {
           <h3 className="font-serif text-xl mb-8 text-gold-400 tracking-wide">Conexão</h3>
           <ul className="space-y-4 text-sm font-light text-slate-400">
             <li className="flex items-center gap-3">
-              <span className="text-gold-500/50">@</span> contato@academialotus.com.br
+              <span className="text-gold-500/50">@</span> brugohb@gmail.com
             </li>
             <li className="flex items-center gap-3">
-              <span className="text-gold-500/50">#</span> (11) 99999-9999
+              <span className="text-gold-500/50">#</span> (19) 99339-5721
             </li>
             <li className="flex items-center gap-3 mt-4 text-slate-500 italic">
               São Paulo, SP - Brasil
