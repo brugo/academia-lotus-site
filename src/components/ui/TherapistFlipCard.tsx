@@ -107,9 +107,9 @@ export function TherapistFlipCard({ id, name, specialty, bio, photoUrl, services
           <div className="absolute top-[46px] right-[46px] w-8 h-8 rounded-full border border-gold-500/6" />
 
           {/* Content */}
-          <div className="relative z-10 h-full flex flex-col p-7">
+          <div className="relative z-10 h-full flex flex-col p-6">
             {/* Header with small photo */}
-            <div className="flex items-center gap-4 mb-6 pb-5 border-b border-white/5">
+            <div className="flex items-center gap-4 mb-4 pb-4 border-b border-white/5 flex-shrink-0">
               <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-gold-500/30 shadow-[0_0_15px_rgba(212,175,55,0.15)] flex-shrink-0">
                 <Image 
                   src={photoUrl || "/user-placeholder.png"}
@@ -128,28 +128,28 @@ export function TherapistFlipCard({ id, name, specialty, bio, photoUrl, services
             </div>
 
             {/* Bio */}
-            <div className="mb-5 flex-shrink-0">
-              <div className="flex items-center gap-2 mb-3">
+            <div className="mb-4 flex-shrink-0">
+              <div className="flex items-center gap-2 mb-2">
                 <Sparkles size={13} className="text-gold-500/60" />
                 <span className="text-[11px] text-gold-400/60 uppercase tracking-[0.2em] font-semibold">Sobre</span>
               </div>
-              <p className="text-slate-300 font-light text-base leading-relaxed line-clamp-4">
+              <p className="text-slate-300 font-light text-sm leading-relaxed line-clamp-3">
                 {bio}
               </p>
             </div>
 
             {/* Services/Techniques */}
             {services.length > 0 && (
-              <div className="mb-auto">
-                <div className="flex items-center gap-2 mb-3">
+              <div className="flex-1 overflow-y-auto min-h-0 mb-4 pr-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                <div className="flex items-center gap-2 mb-2">
                   <Sparkles size={13} className="text-gold-500/60" />
                   <span className="text-[11px] text-gold-400/60 uppercase tracking-[0.2em] font-semibold">Técnicas</span>
                 </div>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-1.5 pb-2">
                   {services.map(title => (
                     <span 
                       key={title} 
-                      className="text-[11px] px-2.5 py-1 rounded-full bg-gold-500/8 border border-gold-500/15 text-gold-200/80 font-medium tracking-wider"
+                      className="text-[10px] px-2 py-1 rounded-full bg-gold-500/8 border border-gold-500/15 text-gold-200/80 font-medium tracking-wider"
                     >
                       {title}
                     </span>
@@ -159,7 +159,7 @@ export function TherapistFlipCard({ id, name, specialty, bio, photoUrl, services
             )}
 
             {/* CTA Button */}
-            <div className="mt-auto pt-5 border-t border-white/5">
+            <div className="mt-auto pt-4 border-t border-white/5 flex-shrink-0">
               <Link 
                 href={`/atendimentos?terapeuta=${id}`}
                 className="flex items-center justify-center gap-3 w-full py-3.5 bg-gradient-to-r from-gold-600 via-gold-500 to-gold-400 text-midnight-950 rounded-xl font-bold text-sm tracking-wider uppercase shadow-[0_0_25px_rgba(212,175,55,0.25)] hover:shadow-[0_0_35px_rgba(212,175,55,0.4)] hover:-translate-y-0.5 transition-all duration-300"
