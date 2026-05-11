@@ -19,7 +19,7 @@ export default function Footer() {
         <div className="col-span-1 md:col-span-2">
           <Link href="/" className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 rounded-full bg-midnight-900 text-gold-400 flex items-center justify-center border border-white/10 overflow-hidden">
-              <Image src="/logo.png" alt="Academia Lótus" width={40} height={40} className="object-cover" />
+              <Image src="/logo.png" alt="Academia Lótus" width={40} height={40} className="object-contain w-full h-full scale-[1.7]" />
             </div>
             <span className="font-serif text-2xl text-gold-400 tracking-wide">Academia Lótus</span>
           </Link>

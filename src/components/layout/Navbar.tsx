@@ -29,7 +29,7 @@ export default function Navbar({ user }: { user: SupabaseUser | null }) {
         <div className="container mx-auto px-6 h-20 md:h-24 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 group">
             <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-midnight-900 border border-white/10 text-gold-400 flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.1)] group-hover:shadow-[0_0_20px_rgba(212,175,55,0.2)] transition-all duration-500 overflow-hidden">
-              <Image src="/logo.png" alt="Academia Lótus" width={48} height={48} className="object-cover" />
+              <Image src="/logo.png" alt="Academia Lótus" width={48} height={48} className="object-contain w-full h-full scale-[1.7]" />
             </div>
             <span className="font-serif tracking-widest text-slate-200 group-hover:text-gold-400 transition-colors uppercase text-xs md:text-sm">Academia Lótus</span>
           </Link>
