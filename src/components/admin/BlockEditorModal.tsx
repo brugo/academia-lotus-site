@@ -713,6 +713,45 @@ export function BlockEditorModal({ isOpen, onClose, onSave, existingBlock, selec
                   );
                 }
 
+                if (field === 'view_mode') {
+                  return (
+                    <div key={field} className="space-y-2 mt-4 border-t border-white/5 pt-4">
+                      <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">
+                        Modo de Visualização (Layout)
+                      </label>
+                      <select
+                        value={(content[field] as string) || 'grid'}
+                        onChange={(e) => setContent({ ...content, [field]: e.target.value })}
+                        className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50 appearance-none cursor-pointer"
+                      >
+                        <option value="grid">Carrossel / Grid (3 cards com scroll)</option>
+                        <option value="featured">Em Destaque (1 card grande por vez)</option>
+                      </select>
+                    </div>
+                  );
+                }
+
+                if (field === 'marquee_speed') {
+                  if (content.view_mode === 'featured') return null;
+                  return (
+                    <div key={field} className="space-y-2 mt-4 border-t border-white/5 pt-4">
+                      <label className="text-[10px] font-medium tracking-widest text-slate-400 uppercase">
+                        Velocidade da Esteira (Carrossel)
+                      </label>
+                      <select
+                        value={(content[field] as string) || 'media'}
+                        onChange={(e) => setContent({ ...content, [field]: e.target.value })}
+                        className="w-full bg-midnight-950/80 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-gold-500/50 appearance-none cursor-pointer"
+                      >
+                        <option value="super_lento">Super Lento</option>
+                        <option value="lento">Lento</option>
+                        <option value="media">Média</option>
+                        <option value="rapido">Rápido</option>
+                      </select>
+                    </div>
+                  );
+                }
+
                 if (field === 'padding_top' || field === 'padding_bottom') {
                   const label = field === 'padding_top' ? 'Espaçamento Superior (Topo)' : 'Espaçamento Inferior (Abaixo)';
                   return (

@@ -13,7 +13,8 @@ export type BlockType =
   | 'lista_terapeutas'
   | 'duplo_card'
   | 'texto_narrativa'
-  | 'page_header';
+  | 'page_header'
+  | 'depoimentos';
 
 export interface PageBlock {
   id: string;
@@ -210,6 +211,32 @@ export interface PageHeaderContent {
   padding_bottom: string;
 }
 
+export interface Testimonial {
+  id: string;
+  user_id: string;
+  user_name: string;
+  user_avatar_url: string | null;
+  title: string;
+  content: string;
+  status: 'pending' | 'approved' | 'rejected';
+  created_at: string;
+  updated_at: string;
+  approved_at: string | null;
+  approved_by: string | null;
+  badge_text?: string | null;
+  target_page?: string | null;
+}
+
+export interface DepoimentosContent {
+  title: string;
+  subtitle: string;
+  max_visible: number;
+  show_submit_button: boolean;
+  submit_button_text: string;
+  view_mode?: 'grid' | 'featured';
+  marquee_speed?: 'super_lento' | 'lento' | 'media' | 'rapido';
+}
+
 /* ---- Block templates for the admin (default content) ---- */
 
 export const BLOCK_TEMPLATES: Record<BlockType, { label: string; icon: string; defaultContent: Record<string, unknown> }> = {
@@ -368,6 +395,19 @@ export const BLOCK_TEMPLATES: Record<BlockType, { label: string; icon: string; d
       description: 'Aprofunde seu contato com as forças universais através de nossos conhecimentos guiados. Uma jornada real de transformação.',
       padding_top: 'large',
       padding_bottom: 'medium',
+    }
+  },
+  depoimentos: {
+    label: 'Depoimentos / Avaliações',
+    icon: 'MessageSquareQuote',
+    defaultContent: {
+      title: 'O que dizem nossos clientes',
+      subtitle: 'Experiências reais de transformação e cura',
+      max_visible: 10,
+      show_submit_button: true,
+      submit_button_text: 'Deixe seu depoimento',
+      view_mode: 'grid',
+      marquee_speed: 'media',
     }
   }
 };

@@ -10,6 +10,7 @@ import { TextoNarrativaBlock } from "./TextoNarrativaBlock";
 import { CupomBlock } from "./CupomBlock";
 import { VideoBannerBlock } from "./VideoBannerBlock";
 import { PageHeaderBlock } from "./PageHeaderBlock";
+import { DepoimentosBlock } from "./DepoimentosBlock";
 
 // Renderizador principal: Mapeia o tipo de banco de dados para os componentes visuais
 export function BlockRenderer({ blocks, hideEmptyState = false }: { blocks: PageBlock[], hideEmptyState?: boolean }) {
@@ -63,6 +64,9 @@ export function BlockRenderer({ blocks, hideEmptyState = false }: { blocks: Page
 
           case 'page_header':
             return <PageHeaderBlock key={block.id} block={block} />;
+
+          case 'depoimentos':
+            return <DepoimentosBlock key={block.id} block={block} />;
 
           // Default fallback para blocos que ainda não têm componente visual pronto
           default:
