@@ -111,7 +111,10 @@ export default async function AtendimentosPage({ searchParams }: { searchParams:
                   
                   <h3 className="font-serif text-2xl text-slate-100 mb-4 tracking-wide relative z-10">{service.title}</h3>
                   <p className="text-slate-400 font-light text-sm leading-relaxed flex-grow relative z-10">
-                    {service.description.length > maxChars ? service.description.substring(0, maxChars).trim() + "..." : service.description}
+                    {(() => {
+                      const cleanText = service.description ? service.description.replace(/<[^>]*>?/gm, '') : '';
+                      return cleanText.length > maxChars ? cleanText.substring(0, maxChars).trim() + "..." : cleanText;
+                    })()}
                   </p>
                   
                   <div className="mt-8 self-start text-xs text-gold-500 font-medium tracking-widest uppercase flex items-center gap-2 group-hover:text-gold-400 transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-gold-500 group-hover:after:w-full after:transition-all after:duration-300 pb-1 z-10">
