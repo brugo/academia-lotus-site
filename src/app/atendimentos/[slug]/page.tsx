@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { RevealText } from "@/components/ui/RevealText";
-import { Sparkles, ArrowLeft, Clock, CalendarHeart } from "lucide-react";
+import { Sparkles, ArrowLeft, Clock, CalendarHeart, MessageCircle } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 import type { DatabaseService } from "@/lib/types";
 
@@ -35,8 +35,18 @@ export default async function AtendimentoPage({ params, searchParams }: { params
     duration: "1h a 2h",
     benefits: ["Paz interior imediata", "Autoconhecimento expandido", "Desbloqueio do fluxo energético", "Maior conexão espiritual com as esferas"],
     image_url: null,
-    base_price: 150
+    base_price: 150,
+    show_booking_button: true,
+    whatsapp_number: undefined,
+    whatsapp_button_text: undefined,
   };
+
+  // Detecta se a descrição contém HTML (conteúdo do editor rico) ou texto simples
+  const isHtml = /<[a-z][\s\S]*>/i.test(data.description || '');
+  const showBooking = data.show_booking_button !== false;
+  const hasWhatsApp = !!(data.whatsapp_number && data.whatsapp_number.trim());
+  const whatsappLink = hasWhatsApp ? `https://wa.me/${data.whatsapp_number!.replace(/\D/g, '')}` : '';
+  const whatsappText = data.whatsapp_button_text || 'Fale Conosco';
 
   return (
     <div className="min-h-screen bg-midnight-950 selection:bg-gold-500/30 selection:text-white">
@@ -81,9 +91,17 @@ export default async function AtendimentoPage({ params, searchParams }: { params
             <div className="flex flex-col md:flex-row gap-12 relative z-10">
               <div className="flex-1 space-y-8">
                 <RevealText element="h3" delay={0.4} className="font-serif text-3xl text-white">Sobre a Técnica</RevealText>
-                <RevealText element="p" delay={0.5} className="text-slate-300 font-light leading-relaxed text-lg text-justify whitespace-pre-wrap">
-                  {data.description}
-                </RevealText>
+                
+                {/* Renderização do conteúdo: HTML rico ou texto simples */}
+                {isHtml ? (
+                  <RevealText delay={0.5} className="rich-content">
+                    <div dangerouslySetInnerHTML={{ __html: data.description }} />
+                  </RevealText>
+                ) : (
+                  <RevealText element="p" delay={0.5} className="text-slate-300 font-light leading-relaxed text-lg text-justify whitespace-pre-wrap">
+                    {data.description}
+                  </RevealText>
+                )}
 
                 {data.image_url && (
                    <RevealText delay={0.8} className="mt-8 w-full h-[300px] sm:h-[400px] md:h-[450px] rounded-3xl relative overflow-hidden group shadow-2xl ring-1 ring-white/10 hover:ring-gold-500/30 transition-all duration-500">
@@ -109,13 +127,17 @@ export default async function AtendimentoPage({ params, searchParams }: { params
                       <span className="text-slate-400 font-light text-sm">Valor da Consulta</span>
                       <span className="text-gold-400 font-medium">R$ {data.base_price?.toFixed(2) || '150.00'}</span>
                     </div>
-                    <div className="flex justify-between items-end pt-3 border-t border-white/10">
-                      <span className="text-slate-300 font-medium text-sm">Taxa de Reserva</span>
-                      <span className="text-white font-serif text-lg">R$ {reservationFee.toFixed(2)}</span>
-                    </div>
-                    <p className="text-xs text-slate-500 mt-4 leading-relaxed">
-                      Este valor inicial garante a exclusividade do seu horário e <strong className="text-slate-400">será abatido do valor total da consulta</strong> no dia do atendimento.
-                    </p>
+                    {showBooking && (
+                      <>
+                        <div className="flex justify-between items-end pt-3 border-t border-white/10">
+                          <span className="text-slate-300 font-medium text-sm">Taxa de Reserva</span>
+                          <span className="text-white font-serif text-lg">R$ {reservationFee.toFixed(2)}</span>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-4 leading-relaxed">
+                          Este valor inicial garante a exclusividade do seu horário e <strong className="text-slate-400">será abatido do valor total da consulta</strong> no dia do atendimento.
+                        </p>
+                      </>
+                    )}
                  </RevealText>
                  
                  <RevealText delay={0.7} className="bg-midnight-950/80 border border-white/10 rounded-2xl p-6 relative overflow-hidden group hover:border-gold-500/20 transition-colors">
@@ -136,18 +158,41 @@ export default async function AtendimentoPage({ params, searchParams }: { params
             </div>
 
             {/* Chamada para Ação */}
-            <RevealText delay={0.8} className="mt-16 sm:mt-24 flex justify-center border-t border-white/5 pt-16">
-               <div className="text-center group">
-                 <h2 className="font-serif text-2xl text-white mb-8">Sente o chamado no seu coração?</h2>
-                 <Link 
-                    href={`/agendamento?servico=${encodeURIComponent(data.title)}${terapeutaId ? `&terapeutaId=${terapeutaId}` : ''}`}
-                    className="inline-flex items-center justify-center gap-3 bg-gradient-to-r from-gold-600 via-gold-500 to-gold-400 text-midnight-950 px-10 py-5 rounded-full font-bold uppercase tracking-widest shadow-[0_0_40px_rgba(212,175,55,0.3)] hover:shadow-[0_0_60px_rgba(212,175,55,0.5)] hover:-translate-y-1 transition-all duration-300"
-                  >
-                   <CalendarHeart size={20} className="group-hover:scale-110 transition-transform" />
-                   Agendar Agora
-                 </Link>
-               </div>
-            </RevealText>
+            {(showBooking || hasWhatsApp) && (
+              <RevealText delay={0.8} className="mt-16 sm:mt-24 flex justify-center border-t border-white/5 pt-16">
+                 <div className="text-center group flex flex-col items-center gap-6">
+                   <h2 className="font-serif text-2xl text-white mb-2">
+                     {showBooking ? 'Sente o chamado no seu coração?' : 'Quer saber mais sobre essa técnica?'}
+                   </h2>
+
+                   <div className="flex flex-col sm:flex-row items-center gap-4">
+                     {/* Botão Agendar Agora */}
+                     {showBooking && (
+                       <Link 
+                          href={`/agendamento?servico=${encodeURIComponent(data.title)}${terapeutaId ? `&terapeutaId=${terapeutaId}` : ''}`}
+                          className="inline-flex items-center justify-center gap-3 bg-gradient-to-r from-gold-600 via-gold-500 to-gold-400 text-midnight-950 px-10 py-5 rounded-full font-bold uppercase tracking-widest shadow-[0_0_40px_rgba(212,175,55,0.3)] hover:shadow-[0_0_60px_rgba(212,175,55,0.5)] hover:-translate-y-1 transition-all duration-300"
+                        >
+                         <CalendarHeart size={20} className="group-hover:scale-110 transition-transform" />
+                         Agendar Agora
+                       </Link>
+                     )}
+
+                     {/* Botão WhatsApp */}
+                     {hasWhatsApp && (
+                       <a 
+                          href={whatsappLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center gap-3 bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-400 text-white px-10 py-5 rounded-full font-bold uppercase tracking-widest shadow-[0_0_40px_rgba(16,185,129,0.3)] hover:shadow-[0_0_60px_rgba(16,185,129,0.5)] hover:-translate-y-1 transition-all duration-300"
+                        >
+                         <MessageCircle size={20} />
+                         {whatsappText}
+                       </a>
+                     )}
+                   </div>
+                 </div>
+              </RevealText>
+            )}
           </div>
         </div>
       </div>

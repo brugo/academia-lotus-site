@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { Plus, Edit2, CheckCircle2, Component, GripVertical, Upload, ImageIcon, X, Settings } from "lucide-react";
+import { Plus, Edit2, CheckCircle2, Component, GripVertical, Upload, ImageIcon, X, Settings, MessageCircle } from "lucide-react";
 import type { DatabaseService, DatabaseTherapist } from "@/lib/types";
 import { BlockManager } from "@/components/admin/BlockManager";
+import { RichTextEditor } from "@/components/admin/RichTextEditor";
 
 // Helper de slug
 const toSlug = (text: string) => {
@@ -39,7 +40,7 @@ export default function ServicesAdminPage() {
   const [isSavingMaintenance, setIsSavingMaintenance] = useState(false);
   
   const [formData, setFormData] = useState<Partial<DatabaseService>>({
-    title: "", description: "", short_subtitle: "", duration: "1h", icon: "Star", image_url: "", is_active: true, benefits: [], order_index: 0, is_featured: false, base_price: 150
+    title: "", description: "", short_subtitle: "", duration: "1h", icon: "Star", image_url: "", is_active: true, benefits: [], order_index: 0, is_featured: false, base_price: 150, show_booking_button: true, whatsapp_number: "", whatsapp_button_text: ""
   });
 
   // Estado temporário na tela de Serviços para quais Terapeutas foram marcados
@@ -150,7 +151,7 @@ export default function ServicesAdminPage() {
     
     setShowAddForm(false);
     setIsEditing(null);
-    setFormData({ title: "", description: "", short_subtitle: "", duration: "1h", icon: "Star", image_url: "", is_active: true, benefits: [], order_index: 0, is_featured: false, base_price: 150 });
+    setFormData({ title: "", description: "", short_subtitle: "", duration: "1h", icon: "Star", image_url: "", is_active: true, benefits: [], order_index: 0, is_featured: false, base_price: 150, show_booking_button: true, whatsapp_number: "", whatsapp_button_text: "" });
     setBenefitsInput("");
     setSelectedTherapistIds([]);
     fetchData();
@@ -210,7 +211,7 @@ export default function ServicesAdminPage() {
   };
 
   const startNewService = () => {
-    setFormData({ title: "", description: "", short_subtitle: "", duration: "1h", icon: "Star", image_url: "", is_active: true, benefits: [], order_index: 0, is_featured: false, base_price: 150 });
+    setFormData({ title: "", description: "", short_subtitle: "", duration: "1h", icon: "Star", image_url: "", is_active: true, benefits: [], order_index: 0, is_featured: false, base_price: 150, show_booking_button: true, whatsapp_number: "", whatsapp_button_text: "" });
     setBenefitsInput("");
     setIsEditing(null);
     setSelectedTherapistIds([]);
@@ -313,7 +314,12 @@ export default function ServicesAdminPage() {
 
                 <div className="space-y-2 md:col-span-2">
                   <label className="text-sm font-medium text-slate-300">Explicação Profunda *</label>
-                  <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full bg-midnight-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-gold-500 transition-colors min-h-[120px]" placeholder="Como a terapia funciona, o que esperar..." />
+                  <p className="text-xs text-slate-500 mb-1">Use a barra de ferramentas para formatar: negrito, subtítulos, listas, inserir imagens entre os parágrafos, etc.</p>
+                  <RichTextEditor
+                    content={formData.description || ''}
+                    onChange={(html) => setFormData({...formData, description: html})}
+                    placeholder="Como a terapia funciona, o que esperar..."
+                  />
                 </div>
 
                 <div className="space-y-2">
@@ -408,6 +414,24 @@ export default function ServicesAdminPage() {
                   </div>
                 )}
                 
+                {/* Botão WhatsApp opcional */}
+                <div className="md:col-span-2 mt-4 bg-midnight-950/50 p-5 rounded-xl border border-white/5 shadow-inner">
+                  <label className="text-sm font-medium text-emerald-400 flex items-center gap-2 mb-4">
+                    <MessageCircle size={16} /> Botão WhatsApp (Opcional)
+                  </label>
+                  <p className="text-xs text-slate-500 mb-4">Para técnicas que não necessitam agendamento (ex: Pintura, Música Celestial). Deixe em branco se não quiser exibir.</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-xs text-slate-400">Número WhatsApp (com DDD e código do país)</label>
+                      <input type="text" value={formData.whatsapp_number || ''} onChange={e => setFormData({...formData, whatsapp_number: e.target.value})} className="w-full bg-midnight-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-gold-500 transition-colors" placeholder="Ex: 5511999998888" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs text-slate-400">Texto do Botão</label>
+                      <input type="text" value={formData.whatsapp_button_text || ''} onChange={e => setFormData({...formData, whatsapp_button_text: e.target.value})} className="w-full bg-midnight-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-gold-500 transition-colors" placeholder="Ex: Fale Conosco" />
+                    </div>
+                  </div>
+                </div>
+
                 <div className="flex items-center gap-6 md:col-span-2 mt-2 bg-midnight-950 p-4 rounded-xl border border-white/5">
                   <label className="flex items-center gap-3 cursor-pointer">
                     <input type="checkbox" checked={formData.is_active} onChange={e => setFormData({...formData, is_active: e.target.checked})} className="w-5 h-5 accent-gold-500 bg-midnight-950 rounded cursor-pointer" />
@@ -417,6 +441,11 @@ export default function ServicesAdminPage() {
                   <label className="flex items-center gap-3 cursor-pointer border-l border-white/10 pl-6">
                     <input type="checkbox" checked={formData.is_featured} onChange={e => setFormData({...formData, is_featured: e.target.checked})} className="w-5 h-5 accent-gold-500 bg-midnight-950 rounded cursor-pointer" />
                     <span className="text-sm text-gold-400 font-medium">Tamanho Grande (G)</span>
+                  </label>
+
+                  <label className="flex items-center gap-3 cursor-pointer border-l border-white/10 pl-6">
+                    <input type="checkbox" checked={formData.show_booking_button !== false} onChange={e => setFormData({...formData, show_booking_button: e.target.checked})} className="w-5 h-5 accent-gold-500 bg-midnight-950 rounded cursor-pointer" />
+                    <span className="text-sm text-slate-300">Exibir Botão "Agendar Agora"</span>
                   </label>
                 </div>
               </div>

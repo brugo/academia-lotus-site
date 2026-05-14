@@ -43,6 +43,9 @@ export interface DatabaseService {
   is_featured: boolean;
   order_index: number;
   base_price?: number;
+  show_booking_button?: boolean;     // default true — toggle para esconder o botão "Agendar Agora"
+  whatsapp_number?: string;          // número WhatsApp para botão "Fale Conosco" (ex: 5511999998888)
+  whatsapp_button_text?: string;     // texto do botão WhatsApp (ex: "Fale Conosco")
   created_at?: string;
 }
 
