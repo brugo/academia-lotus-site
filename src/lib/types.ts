@@ -298,6 +298,10 @@ export const BLOCK_TEMPLATES: Record<BlockType, { label: string; icon: string; d
       lightbox_text: 'O texto livre para exibição dentro do seu modal, contando um pouco sobre os princípios desta jornada e porquê este momento é perfeito para iniciá-la...',
       lightbox_image_url: '',
       lightbox_video_url: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+      lightbox_blocks: [],
+      lightbox_show_button: false,
+      lightbox_button_text: 'Saiba Mais',
+      lightbox_button_link: '/atendimentos',
     },
   },
   cupom: {
@@ -359,6 +363,7 @@ export const BLOCK_TEMPLATES: Record<BlockType, { label: string; icon: string; d
         lightbox_text: 'Detalhes da ementa deste curso maravilhoso.',
         lightbox_image_url: '',
         lightbox_video_url: '',
+        lightbox_blocks: [],
         lightbox_show_button: false,
         lightbox_button_text: 'Adquirir',
         lightbox_button_link: '#'
@@ -375,6 +380,10 @@ export const BLOCK_TEMPLATES: Record<BlockType, { label: string; icon: string; d
         lightbox_text: 'Detalhes da ementa deste curso focada nas ervas e no natural.',
         lightbox_image_url: '',
         lightbox_video_url: '',
+        lightbox_blocks: [],
+        lightbox_show_button: false,
+        lightbox_button_text: 'Explorar Saberes',
+        lightbox_button_link: '/cursos'
       }
     }
   },
