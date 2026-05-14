@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale/pt-BR';
 import { Clock, MessageCircle, User as UserIcon, X, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
+import { formatWhatsAppLink } from '@/lib/whatsapp';
 
 interface Appointment {
   id: string;
@@ -162,7 +163,7 @@ export default function PaginatedAppointments({
               {variant === 'client' ? (
                 app.therapists?.whatsapp ? (
                   <a 
-                    href={`https://wa.me/${app.therapists.whatsapp.replace(/\D/g, '')}`} 
+                    href={formatWhatsAppLink(app.therapists.whatsapp)} 
                     target="_blank" 
                     rel="noreferrer"
                     className="flex items-center justify-center gap-2 px-5 py-2.5 bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/20 rounded-xl transition-colors text-sm font-medium w-full md:w-auto"
@@ -177,7 +178,7 @@ export default function PaginatedAppointments({
               ) : (
                 app.client_whatsapp ? (
                   <a 
-                    href={`https://wa.me/${app.client_whatsapp.replace(/\D/g, '')}`} 
+                    href={formatWhatsAppLink(app.client_whatsapp)} 
                     target="_blank" 
                     rel="noreferrer"
                     className="flex items-center justify-center gap-2 px-5 py-2.5 bg-green-600 text-white hover:bg-green-500 rounded-xl transition-colors text-sm font-medium w-full md:w-auto shadow-lg shadow-green-900/20"

@@ -3,6 +3,7 @@ import { RevealText } from "@/components/ui/RevealText";
 import { Sparkles, ArrowLeft, Clock, CalendarHeart, MessageCircle } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 import type { DatabaseService } from "@/lib/types";
+import { formatWhatsAppLink } from "@/lib/whatsapp";
 
 export const dynamic = 'force-dynamic';
 
@@ -45,7 +46,7 @@ export default async function AtendimentoPage({ params, searchParams }: { params
   const isHtml = /<[a-z][\s\S]*>/i.test(data.description || '');
   const showBooking = data.show_booking_button !== false;
   const hasWhatsApp = !!(data.whatsapp_number && data.whatsapp_number.trim());
-  const whatsappLink = hasWhatsApp ? `https://wa.me/${data.whatsapp_number!.replace(/\D/g, '')}` : '';
+  const whatsappLink = hasWhatsApp ? formatWhatsAppLink(data.whatsapp_number!) : '';
   const whatsappText = data.whatsapp_button_text || 'Fale Conosco';
 
   return (

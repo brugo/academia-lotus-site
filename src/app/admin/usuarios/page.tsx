@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Users as UsersIcon, Mail, Phone, Calendar, UserCircle, Search, Filter } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { formatWhatsAppLink } from "@/lib/whatsapp";
 
 type UserProfile = {
   id: string;
@@ -163,7 +164,7 @@ export default function UsuariosAdminPage() {
                         <div className="flex items-center gap-2 text-sm text-slate-400">
                           <Phone size={14} className="text-slate-500" />
                           {user.whatsapp !== 'Não informado' ? (
-                            <a href={`https://wa.me/${user.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="hover:text-emerald-400 transition-colors">
+                            <a href={formatWhatsAppLink(user.whatsapp)} target="_blank" rel="noreferrer" className="hover:text-emerald-400 transition-colors">
                               {user.whatsapp}
                             </a>
                           ) : (

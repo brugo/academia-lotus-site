@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { formatWhatsAppLink } from './whatsapp';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -99,7 +100,7 @@ function buildTherapistEmailHtml(data: BookingEmailData): string {
           ${data.clientWhatsapp ? `
           <tr>
             <td style="padding: 0 40px 30px; text-align: center;">
-              <a href="https://wa.me/${data.clientWhatsapp.replace(/\\D/g, '')}" target="_blank" style="display: inline-block; padding: 14px 32px; background-color: #22c55e; color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none; border-radius: 10px; letter-spacing: 0.5px;">
+              <a href="${formatWhatsAppLink(data.clientWhatsapp)}" target="_blank" style="display: inline-block; padding: 14px 32px; background-color: #22c55e; color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none; border-radius: 10px; letter-spacing: 0.5px;">
                 💬 Falar com o Paciente no WhatsApp
               </a>
             </td>
@@ -226,7 +227,7 @@ function buildClientEmailHtml(data: BookingEmailData): string {
           ${data.therapistWhatsapp ? `
           <tr>
             <td style="padding: 0 40px 30px; text-align: center;">
-              <a href="https://wa.me/${data.therapistWhatsapp.replace(/\\D/g, '')}" target="_blank" style="display: inline-block; padding: 14px 32px; background-color: #22c55e; color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none; border-radius: 10px; letter-spacing: 0.5px;">
+              <a href="${formatWhatsAppLink(data.therapistWhatsapp)}" target="_blank" style="display: inline-block; padding: 14px 32px; background-color: #22c55e; color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none; border-radius: 10px; letter-spacing: 0.5px;">
                 💬 Falar com o Terapeuta no WhatsApp
               </a>
             </td>
