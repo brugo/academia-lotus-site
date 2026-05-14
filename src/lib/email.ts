@@ -258,7 +258,8 @@ function buildClientEmailHtml(data: BookingEmailData): string {
 //  FUNÇÃO PRINCIPAL — Enviar ambos os e-mails
 // ═══════════════════════════════════════════════════════
 export async function sendBookingNotificationEmails(data: BookingEmailData) {
-  const fromAddress = 'Academia Lótus <onboarding@resend.dev>';
+  // Use um e-mail com o seu domínio verificado (ex: contato@academiaespiritualdelotus.com)
+  const fromAddress = process.env.RESEND_FROM_EMAIL || 'Academia Lótus <contato@academiaespiritualdelotus.com>';
 
   try {
     // E-mail para o TERAPEUTA
