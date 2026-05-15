@@ -226,6 +226,24 @@ export async function POST(req: Request) {
       }
     }
 
+    const dateFormattedStr = new Intl.DateTimeFormat('pt-BR', {
+      timeZone: 'America/Sao_Paulo',
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric'
+    }).format(start);
+
+    const timeFormattedStr = new Intl.DateTimeFormat('pt-BR', {
+      timeZone: 'America/Sao_Paulo',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(start);
+
+    const dayOfWeekStr = new Intl.DateTimeFormat('pt-BR', {
+      timeZone: 'America/Sao_Paulo',
+      weekday: 'long'
+    }).format(start);
+
     await sendBookingNotificationEmails({
       clientName,
       clientEmail,
@@ -234,9 +252,9 @@ export async function POST(req: Request) {
       therapistEmail,
       therapistWhatsapp,
       serviceName: serviceTitle,
-      dateFormatted: format(start, "dd 'de' MMMM 'de' yyyy", { locale: ptBR }),
-      timeFormatted: format(start, 'HH:mm', { locale: ptBR }),
-      dayOfWeek: format(start, 'EEEE', { locale: ptBR }),
+      dateFormatted: dateFormattedStr,
+      timeFormatted: timeFormattedStr,
+      dayOfWeek: dayOfWeekStr,
     });
 
   } catch (error) {

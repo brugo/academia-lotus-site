@@ -156,7 +156,7 @@ export default async function SuccessPage({ searchParams }: { searchParams: Prom
           ) : null}
 
           <a 
-            href="/perfil"
+            href="/jornada"
             className={`w-full ${whatsappLink ? 'sm:w-1/2' : ''} px-6 py-4 bg-gold-600 hover:bg-gold-500 text-midnight-950 font-medium rounded-xl transition-all flex items-center justify-center gap-2 group`}
           >
             Acessar Meu Perfil 
