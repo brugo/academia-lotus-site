@@ -3,6 +3,10 @@ import React from 'react';
 export const metadata = {
   title: 'Termos de Uso | Academia Espiritual de Lótus',
   description: 'Termos de Uso e Política de Cancelamento da Academia Espiritual de Lótus.',
+  robots: {
+    index: false,
+    follow: true,
+  },
 };
 
 export default function TermsPage() {
