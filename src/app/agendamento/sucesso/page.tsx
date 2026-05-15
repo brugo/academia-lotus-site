@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { CheckCircle2, ArrowRight, Calendar, Clock, User, Sparkles, Info } from "lucide-react";
+import { CheckCircle2, ArrowRight, Calendar, Clock, User, Sparkles, Info, MessageCircle } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 
 // Cliente Supabase com Service Role para consultar pending_checkouts
@@ -41,6 +41,13 @@ export default async function SuccessPage({ searchParams }: { searchParams: Prom
   
   const dateObj = new Date(startTime);
   
+  // Buscar os dados do terapeuta para pegar o whatsapp
+  const { data: therapistData } = await supabase
+    .from('therapists')
+    .select('whatsapp')
+    .eq('id', checkout.therapist_id)
+    .single();
+
   const dateFormatted = new Intl.DateTimeFormat('pt-BR', {
     timeZone: 'America/Sao_Paulo',
     day: '2-digit',
@@ -53,6 +60,11 @@ export default async function SuccessPage({ searchParams }: { searchParams: Prom
     hour: '2-digit',
     minute: '2-digit'
   }).format(dateObj);
+
+  const therapistWhatsapp = therapistData?.whatsapp?.replace(/\D/g, '') || '';
+  const whatsappLink = therapistWhatsapp 
+    ? `https://wa.me/55${therapistWhatsapp}?text=${encodeURIComponent(`Olá ${therapistName || ''}, acabo de agendar uma sessão de ${requestedService || 'Terapia'} com você pelo site da Academia de Lótus para o dia ${dateFormatted} às ${timeFormatted}.`)}`
+    : '';
 
   return (
     <div className="min-h-screen bg-midnight-950 flex flex-col items-center justify-center px-6 py-20 text-center relative overflow-hidden">
@@ -127,16 +139,30 @@ export default async function SuccessPage({ searchParams }: { searchParams: Prom
         </div>
         
         <p className="text-slate-400 text-sm mb-6">
-          Acompanhe estas e mais informações importantes como whatsapp do terapeuta no menu &quot;Meu Perfil&quot; na barra superior. Tenha um bom atendimento.
+          Acompanhe estas e mais informações importantes no menu &quot;Meu Perfil&quot; na barra superior.
         </p>
         
-        <a 
-          href="/jornada"
-          className="w-full px-6 py-4 bg-gold-600 hover:bg-gold-500 text-midnight-950 font-medium rounded-xl transition-all flex items-center justify-center gap-2 group"
-        >
-          Acessar Meu Perfil 
-          <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-        </a>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          {whatsappLink ? (
+            <a 
+              href={whatsappLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full sm:w-1/2 px-6 py-4 bg-[#25D366]/10 hover:bg-[#25D366]/20 border border-[#25D366]/30 text-[#25D366] font-medium rounded-xl transition-all shadow-lg flex items-center justify-center gap-3"
+            >
+              <MessageCircle size={20} />
+              Falar no WhatsApp
+            </a>
+          ) : null}
+
+          <a 
+            href="/perfil"
+            className={`w-full ${whatsappLink ? 'sm:w-1/2' : ''} px-6 py-4 bg-gold-600 hover:bg-gold-500 text-midnight-950 font-medium rounded-xl transition-all flex items-center justify-center gap-2 group`}
+          >
+            Acessar Meu Perfil 
+            <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+          </a>
+        </div>
       </div>
     </div>
   );

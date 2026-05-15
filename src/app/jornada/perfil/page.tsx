@@ -17,6 +17,7 @@ export default function PerfilPage() {
   const [formData, setFormData] = useState({
     name: "",
     whatsapp: "",
+    cpf: "",
     avatar_url: ""
   });
   
@@ -34,6 +35,7 @@ export default function PerfilPage() {
       setFormData({
         name: user.user_metadata?.full_name || "",
         whatsapp: user.user_metadata?.whatsapp || "",
+        cpf: formatCpf(user.user_metadata?.cpf || ""),
         avatar_url: user.user_metadata?.avatar_url || ""
       });
       if (user.user_metadata?.avatar_url) {
@@ -43,6 +45,33 @@ export default function PerfilPage() {
     }
     loadUser();
   }, [router, supabase.auth]);
+
+  const formatCpf = (cpf: string) => {
+    if (!cpf) return "";
+    const digits = cpf.replace(/\D/g, '');
+    let res = digits.substring(0, 11);
+    if (digits.length > 9) {
+      res = `${digits.substring(0, 3)}.${digits.substring(3, 6)}.${digits.substring(6, 9)}-${digits.substring(9, 11)}`;
+    } else if (digits.length > 6) {
+      res = `${digits.substring(0, 3)}.${digits.substring(3, 6)}.${digits.substring(6, 9)}`;
+    } else if (digits.length > 3) {
+      res = `${digits.substring(0, 3)}.${digits.substring(3, 6)}`;
+    }
+    return res;
+  };
+
+  const formatPhone = (phone: string) => {
+    if (!phone) return "";
+    const digits = phone.replace(/\D/g, '');
+    let res = digits.substring(0, 11);
+    if (res.length > 2) res = `(${res.substring(0, 2)}) ${res.substring(2)}`;
+    if (digits.length > 10) {
+      res = `(${digits.substring(0, 2)}) ${digits.substring(2, 7)}-${digits.substring(7, 11)}`;
+    } else if (digits.length > 6) {
+      res = `(${digits.substring(0, 2)}) ${digits.substring(2, 6)}-${digits.substring(6, 10)}`;
+    }
+    return res;
+  };
 
   // Função para comprimir a imagem antes de subir
   const compressImage = (file: File): Promise<Blob> => {
@@ -144,6 +173,7 @@ export default function PerfilPage() {
         data: {
           full_name: formData.name,
           whatsapp: formData.whatsapp,
+          cpf: formData.cpf.replace(/\D/g, ''),
           avatar_url: formData.avatar_url
         }
       });
@@ -255,22 +285,28 @@ export default function PerfilPage() {
                 />
               </div>
 
-              <div className="space-y-2 md:col-span-2">
+              <div className="space-y-2 md:col-span-1">
                 <label className="text-sm font-medium text-slate-300">WhatsApp</label>
                 <input 
                   type="tel" 
                   value={formData.whatsapp}
-                  onChange={e => {
-                    let value = e.target.value.replace(/\D/g, '');
-                    value = value.substring(0, 11);
-                    if (value.length > 2) value = `(${value.substring(0, 2)}) ${value.substring(2)}`;
-                    if (value.length > 9) value = `${value.substring(0, 10)}-${value.substring(10)}`;
-                    setFormData({...formData, whatsapp: value});
-                  }}
+                  onChange={e => setFormData({...formData, whatsapp: formatPhone(e.target.value)})}
                   className="w-full bg-midnight-950 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-gold-500 transition-colors" 
                   placeholder="(11) 99999-9999"
                 />
-                <p className="text-xs text-slate-500">Usado para receber links das sessões e lembretes.</p>
+                <p className="text-xs text-slate-500">Usado para lembretes.</p>
+              </div>
+
+              <div className="space-y-2 md:col-span-1">
+                <label className="text-sm font-medium text-slate-300">CPF</label>
+                <input 
+                  type="text" 
+                  value={formData.cpf}
+                  onChange={e => setFormData({...formData, cpf: formatCpf(e.target.value)})}
+                  className="w-full bg-midnight-950 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-gold-500 transition-colors" 
+                  placeholder="000.000.000-00"
+                />
+                <p className="text-xs text-slate-500">Apenas para cobranças e recibos.</p>
               </div>
             </div>
 

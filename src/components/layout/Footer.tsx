@@ -32,7 +32,7 @@ export default function Footer() {
           <ul className="space-y-4 text-sm font-light text-slate-400">
             <li><Link href="/cursos" className="hover:text-gold-300 hover:translate-x-1 inline-block transition-transform">Cursos e Formações</Link></li>
             <li><Link href="/atendimentos" className="hover:text-gold-300 hover:translate-x-1 inline-block transition-transform">Nossos Atendimentos</Link></li>
-            <li><Link href="/terapeutas" className="hover:text-gold-300 hover:translate-x-1 inline-block transition-transform">Clínica de Terapeutas</Link></li>
+            <li><Link href="/terapeutas" className="hover:text-gold-300 hover:translate-x-1 inline-block transition-transform">Nossos Terapeutas</Link></li>
           </ul>
         </div>
         <div>

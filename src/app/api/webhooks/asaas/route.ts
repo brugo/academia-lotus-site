@@ -32,6 +32,14 @@ function parseDuration(durationStr: string): number {
  * Webhook handler para notificações do Asaas.
  */
 export async function POST(req: Request) {
+  const asaasToken = req.headers.get('asaas-access-token');
+  const expectedToken = process.env.ASAAS_WEBHOOK_SECRET;
+
+  if (expectedToken && asaasToken !== expectedToken) {
+    console.error('[Asaas Webhook] Falha de autenticação: token inválido.');
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   let payload: any;
   const contentType = req.headers.get('content-type') || '';
 

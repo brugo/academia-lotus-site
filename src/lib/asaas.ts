@@ -127,3 +127,81 @@ export async function createAsaasPayment({
 
   return data;
 }
+
+export interface CreateTransparentPaymentProps {
+  customerId: string;
+  billingType: 'PIX' | 'CREDIT_CARD';
+  amount: number;
+  dueDate: string; // YYYY-MM-DD
+  description: string;
+  externalReference: string;
+  remoteIp?: string; // Required for CREDIT_CARD
+  creditCard?: {
+    holderName: string;
+    number: string;
+    expiryMonth: string;
+    expiryYear: string;
+    ccv: string;
+  };
+  creditCardHolderInfo?: {
+    name: string;
+    email: string;
+    cpfCnpj: string;
+    postalCode: string;
+    addressNumber: string;
+    addressComplement?: string;
+    phone: string;
+  };
+}
+
+/**
+ * Cria uma cobrança (Payment) no Asaas de forma transparente (sem redirecionar).
+ */
+export async function createTransparentAsaasPayment(props: CreateTransparentPaymentProps) {
+  const body: any = {
+    customer: props.customerId,
+    billingType: props.billingType,
+    value: props.amount,
+    dueDate: props.dueDate,
+    description: props.description,
+    externalReference: props.externalReference,
+  };
+
+  if (props.billingType === 'CREDIT_CARD') {
+    if (!props.creditCard || !props.creditCardHolderInfo || !props.remoteIp) {
+      throw new Error("Credit card info and remoteIp are required for CREDIT_CARD billingType.");
+    }
+    body.creditCard = props.creditCard;
+    body.creditCardHolderInfo = props.creditCardHolderInfo;
+    body.remoteIp = props.remoteIp;
+  }
+
+  const response = await asaasFetch('/payments', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    console.error('[Asaas] Erro ao criar cobrança transparente:', JSON.stringify(data, null, 2));
+    throw new Error(`Asaas API Error: ${response.status} - ${JSON.stringify(data)}`);
+  }
+
+  return data;
+}
+
+/**
+ * Recupera o QR Code de um pagamento PIX do Asaas.
+ */
+export async function getAsaasPixQrCode(paymentId: string) {
+  const response = await asaasFetch(`/payments/${paymentId}/pixQrCode`);
+  const data = await response.json();
+  
+  if (!response.ok) {
+    console.error('[Asaas] Erro ao buscar QR Code do PIX:', JSON.stringify(data, null, 2));
+    throw new Error(`Asaas API Error: ${response.status} - ${JSON.stringify(data)}`);
+  }
+
+  return data;
+}
