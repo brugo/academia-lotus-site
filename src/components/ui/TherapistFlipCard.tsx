@@ -16,20 +16,20 @@ interface TherapistFlipCardProps {
 
 export function TherapistFlipCard({ id, name, specialty, bio, photoUrl, services }: TherapistFlipCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
-  const isTouchDevice = typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches;
 
   return (
     <div 
       className="flip-card-container h-[520px] group cursor-pointer"
       style={{ perspective: "1200px" }}
-      onMouseEnter={() => {
-        if (!isTouchDevice) setIsFlipped(true);
+      onPointerEnter={(e) => {
+        if (e.pointerType === "mouse") setIsFlipped(true);
       }}
-      onMouseLeave={() => {
-        if (!isTouchDevice) setIsFlipped(false);
+      onPointerLeave={(e) => {
+        if (e.pointerType === "mouse") setIsFlipped(false);
       }}
-      onClick={() => {
-        if (isTouchDevice) setIsFlipped(prev => !prev);
+      onClick={(e) => {
+        if ((e.target as HTMLElement).closest('a') || (e.target as HTMLElement).closest('button')) return;
+        setIsFlipped(prev => !prev);
       }}
     >
       <div 

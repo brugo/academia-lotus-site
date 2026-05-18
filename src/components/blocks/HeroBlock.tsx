@@ -56,7 +56,7 @@ export function HeroBlock({ block }: { block: PageBlock }) {
       </div>
 
       {/* Desktop Wrapper */}
-      <motion.div style={{ y: textY, opacity: textOpacity }} className="hidden md:flex container mx-auto px-6 text-center z-10 flex-col items-center mt-[-5vh]">
+      <motion.div style={{ y: textY, opacity: textOpacity }} className="hidden md:flex container mx-auto px-6 text-center z-10 flex-col items-center md:-mt-10">
         <RevealText delay={0.2} element="div" className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-black/40 backdrop-blur-md border border-gold-500/20 text-gold-400 text-sm font-light mb-10 shadow-[0_0_20px_rgba(212,175,55,0.1)]">
           <Sparkles size={16} className="text-gold-500" />
           <span className="tracking-widest uppercase text-[10px] md:text-xs font-semibold">{content.badge || "A essência pura"}</span>
@@ -86,7 +86,7 @@ export function HeroBlock({ block }: { block: PageBlock }) {
       </motion.div>
 
       {/* Mobile Wrapper */}
-      <div className="flex md:hidden container mx-auto px-6 text-center z-10 flex-col items-center mt-[-5vh]">
+      <div className="flex md:hidden container mx-auto px-6 text-center z-10 flex-col items-center mt-2">
         <div className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-black/40 border border-gold-500/20 text-gold-400 text-sm font-light mb-10">
           <Sparkles size={16} className="text-gold-500" />
           <span className="tracking-widest uppercase text-[10px] font-semibold">{content.badge || "A essência pura"}</span>

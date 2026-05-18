@@ -42,7 +42,7 @@ export default function Footer() {
               <span className="text-gold-500/50">@</span> brugohb@gmail.com
             </li>
             <li className="flex items-center gap-3">
-              <span className="text-gold-500/50">#</span> (19) 99339-5721
+              <span className="text-gold-500/50">#</span> (11) 95658-9429
             </li>
             <li className="flex items-center gap-3 mt-4 text-slate-500 italic">
               São Paulo, SP - Brasil

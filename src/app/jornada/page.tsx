@@ -156,7 +156,7 @@ export default async function JornadaPage() {
               <p className="text-slate-400 text-sm mb-4">
                 Se precisar reagendar ou tiver alguma dúvida, entre em contato com nosso suporte.
               </p>
-              <a href="#" className="inline-flex items-center text-gold-400 text-sm hover:text-gold-300 font-medium mb-6">
+              <a href="https://wa.me/5511956589429" target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-gold-400 text-sm hover:text-gold-300 font-medium mb-6">
                 Falar no WhatsApp <span className="ml-1">›</span>
               </a>
               
