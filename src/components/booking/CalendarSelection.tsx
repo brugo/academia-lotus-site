@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Calendar, Clock, Loader2 } from "lucide-react";
 import { format, addDays, isSameDay, startOfDay, parseISO, isBefore, addHours, endOfDay } from "date-fns";
@@ -22,6 +22,14 @@ export function CalendarSelection({ therapist, onBack, onDateSelect, requestedSe
   const [pageOffset, setPageOffset] = useState(0);
   
   const [selectedDay, setSelectedDay] = useState<Date>(startOfDay(new Date()));
+  
+  // Ref para a seção de horários — usado para auto-scroll no mobile
+  const timeSlotsRef = useRef<HTMLDivElement>(null);
+  
+  // Detecta se é mobile (apenas client-side)
+  const isMobile = useCallback(() => {
+    return typeof window !== 'undefined' && window.innerWidth < 1024;
+  }, []);
   
   const next14Days = Array.from({ length: 14 }).map((_, i) => addDays(startOfDay(new Date()), i + (pageOffset * 14)));
   
@@ -223,7 +231,15 @@ export function CalendarSelection({ therapist, onBack, onDateSelect, requestedSe
                    return (
                      <button
                        key={idx}
-                       onClick={() => setSelectedDay(day)}
+                       onClick={() => {
+                         setSelectedDay(day);
+                         // Auto-scroll para horários no mobile
+                         if (isMobile() && !blocked) {
+                           setTimeout(() => {
+                             timeSlotsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                           }, 150);
+                         }
+                       }}
                        disabled={blocked}
                        className={`flex flex-col items-center justify-center p-3 rounded-2xl transition-all border ${
                          blocked
@@ -250,7 +266,7 @@ export function CalendarSelection({ therapist, onBack, onDateSelect, requestedSe
             </div>
 
             {/* Direita: Horários do dia selecionado */}
-            <div>
+            <div ref={timeSlotsRef} className="scroll-mt-24">
               <h3 className="flex items-center gap-2 text-white font-medium mb-6">
                 <Clock size={18} className="text-gold-500" /> Horários em {format(selectedDay, "dd 'de' MMMM", { locale: ptBR })}
               </h3>

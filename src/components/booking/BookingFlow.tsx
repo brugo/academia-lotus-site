@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { TherapistSelection } from "./TherapistSelection";
 import { CalendarSelection } from "./CalendarSelection";
@@ -13,6 +13,23 @@ export function BookingFlow({ initialTherapists, requestedService, requestedTher
   const [step, setStep] = useState<Step>(preSelectedTherapist ? 2 : 1);
   const [selectedTherapist, setSelectedTherapist] = useState<any | null>(preSelectedTherapist || null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+
+  // Ref para o topo do fluxo — auto-scroll no mobile
+  const flowTopRef = useRef<HTMLDivElement>(null);
+  
+  // Detecta se é mobile
+  const isMobile = useCallback(() => {
+    return typeof window !== 'undefined' && window.innerWidth < 768;
+  }, []);
+  
+  // Função para scroll ao topo no mobile
+  const scrollToFlowTop = useCallback(() => {
+    if (isMobile()) {
+      setTimeout(() => {
+        flowTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+  }, [isMobile]);
 
   const direction = 1; // Para animações deslizantes
 
@@ -36,7 +53,7 @@ export function BookingFlow({ initialTherapists, requestedService, requestedTher
   };
 
   return (
-    <div className="relative w-full min-h-[500px]">
+    <div ref={flowTopRef} className="relative w-full min-h-[500px] scroll-mt-20">
       <AnimatePresence mode="wait" custom={direction}>
         
         {step === 1 && (
@@ -54,6 +71,7 @@ export function BookingFlow({ initialTherapists, requestedService, requestedTher
               onSelect={(therapist) => {
                 setSelectedTherapist(therapist);
                 setStep(2);
+                scrollToFlowTop();
               }} 
               requestedService={requestedService}
             />
@@ -76,6 +94,7 @@ export function BookingFlow({ initialTherapists, requestedService, requestedTher
               onDateSelect={(date) => {
                 setSelectedDate(date);
                 setStep(3);
+                scrollToFlowTop();
               }}
               requestedService={requestedService}
             />

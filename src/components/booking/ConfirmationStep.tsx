@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
 import { ArrowLeft, CheckCircle2, Lock, Loader2, Video, CreditCard, QrCode, Copy } from "lucide-react";
@@ -11,6 +11,23 @@ export function ConfirmationStep({ therapist, date, onBack, requestedService, us
   const [meetLink, setMeetLink] = useState("");
   const [step, setStep] = useState<'details' | 'payment' | 'pix' | 'success'>('details');
   const [paymentMethod, setPaymentMethod] = useState<'PIX' | 'CREDIT_CARD'>('PIX');
+
+  // Ref para o topo do componente — auto-scroll no mobile
+  const topRef = useRef<HTMLDivElement>(null);
+  
+  // Detecta se é mobile (apenas client-side)
+  const isMobile = useCallback(() => {
+    return typeof window !== 'undefined' && window.innerWidth < 768;
+  }, []);
+  
+  // Função para scroll ao topo no mobile
+  const scrollToTop = useCallback(() => {
+    if (isMobile()) {
+      setTimeout(() => {
+        topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+  }, [isMobile]);
   
   const [pixData, setPixData] = useState<{ encodedImage: string, payload: string, referenceId: string } | null>(null);
   const [currentReferenceId, setCurrentReferenceId] = useState<string | null>(null);
@@ -94,6 +111,7 @@ export function ConfirmationStep({ therapist, date, onBack, requestedService, us
       return;
     }
     setStep('payment');
+    scrollToTop();
   };
 
   const handlePaymentSubmit = async () => {
@@ -162,10 +180,12 @@ export function ConfirmationStep({ therapist, date, onBack, requestedService, us
           });
           setStep('pix');
           setIsPolling(true);
+          scrollToTop();
         } else {
           // Cartão de Crédito com sucesso na API, agora aguardamos o webhook
           setStep('pix'); // Usamos a mesma tela de aguardando (podemos customizar abaixo)
           setIsPolling(true);
+          scrollToTop();
         }
       } else {
         alert("Erro no pagamento: " + (result.error || "Verifique os dados e tente novamente."));
@@ -256,6 +276,7 @@ export function ConfirmationStep({ therapist, date, onBack, requestedService, us
 
   return (
     <div className="w-full max-w-3xl mx-auto pb-32">
+      <div ref={topRef} className="scroll-mt-24" />
       <button 
         onClick={() => step === 'payment' ? setStep('details') : onBack()}
         className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-8 group"
