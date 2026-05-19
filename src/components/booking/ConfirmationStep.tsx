@@ -208,6 +208,7 @@ export function ConfirmationStep({ therapist, date, onBack, requestedService, us
   if (step === 'success' || success) {
     return (
       <div className="w-full max-w-xl mx-auto pb-32 pt-10 text-center">
+        <div ref={topRef} className="scroll-mt-24" />
         <Loader2 className="animate-spin text-gold-400 mx-auto mb-4" size={32} />
         <h2 className="text-xl font-serif text-white">Redirecionando...</h2>
       </div>
@@ -217,6 +218,7 @@ export function ConfirmationStep({ therapist, date, onBack, requestedService, us
   if (step === 'pix' && (pixData || paymentMethod === 'CREDIT_CARD')) {
     return (
       <div className="w-full max-w-xl mx-auto pb-32 pt-10">
+        <div ref={topRef} className="scroll-mt-24" />
         <div className="bg-gradient-to-b from-midnight-900 to-midnight-950 border border-gold-500/30 rounded-3xl p-10 text-center shadow-[0_0_50px_rgba(212,175,55,0.15)] relative overflow-hidden">
           
           {paymentMethod === 'PIX' && pixData ? (
