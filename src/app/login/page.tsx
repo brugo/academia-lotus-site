@@ -2,8 +2,10 @@
 
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
 import { Eye, EyeOff, AlertCircle, Mail, LogIn, UserPlus } from "lucide-react";
+
 
 function LoginContent() {
   const [fullName, setFullName] = useState("");
@@ -101,8 +103,15 @@ function LoginContent() {
   return (
     <div className="w-full max-w-md bg-midnight-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-8 relative z-10 shadow-2xl">
       <div className="text-center mb-8">
-        <div className="w-16 h-16 bg-midnight-950 border border-white/10 text-gold-400 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner">
-          <span className="font-serif text-3xl italic mr-1 mt-1">L</span>
+        <div className="relative w-20 h-20 mx-auto mb-6 flex items-center justify-center">
+          <Image 
+            src="/logo.png" 
+            alt="Academia de Lótus" 
+            width={80} 
+            height={80} 
+            className="object-contain w-full h-full transition-transform duration-500 hover:scale-110"
+            priority
+          />
         </div>
         <h1 className="font-serif text-3xl text-slate-100 mb-2">
           {isForgotPassword ? "Recuperar Senha" : (isRegistering ? "Bem-vindo(a)" : "Bem-vindo(a)")}
