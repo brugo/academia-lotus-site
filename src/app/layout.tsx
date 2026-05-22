@@ -6,6 +6,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import SmoothScrollProvider from "@/components/providers/SmoothScrollProvider";
 import { createClient } from "@/utils/supabase/server";
+import Script from "next/script";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -45,6 +46,20 @@ export default async function RootLayout({
           </main>
           <Footer />
         </SmoothScrollProvider>
+        {/* Google Tag (gtag.js) */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=AW-18180014272"
+          strategy="afterInteractive"
+        />
+        <Script id="google-ads-tag" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'AW-18180014272');
+          `}
+        </Script>
       </body>
     </html>
   );
