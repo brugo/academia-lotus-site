@@ -36,13 +36,20 @@ export function TherapistFlipCard({ id, name, specialty, bio, photoUrl, services
         className="flip-card-inner relative w-full h-full transition-transform duration-700 ease-out"
         style={{ 
           transformStyle: "preserve-3d",
+          WebkitTransformStyle: "preserve-3d",
           transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
+          WebkitTransform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
         }}
       >
         {/* ============ FRONT ============ */}
         <div 
-          className={`absolute inset-0 rounded-3xl overflow-hidden ${isFlipped ? 'pointer-events-none' : ''}`}
-          style={{ backfaceVisibility: "hidden" }}
+          className={`absolute inset-0 rounded-3xl overflow-hidden transition-all duration-700 ${isFlipped ? 'pointer-events-none opacity-0 invisible' : 'opacity-100'}`}
+          style={{ 
+            backfaceVisibility: "hidden",
+            WebkitBackfaceVisibility: "hidden",
+            transform: "rotateY(0deg)",
+            WebkitTransform: "rotateY(0deg)",
+          }}
         >
           {/* Full-card photo background */}
           <div className="absolute inset-0 bg-midnight-950">
@@ -88,10 +95,12 @@ export function TherapistFlipCard({ id, name, specialty, bio, photoUrl, services
 
         {/* ============ BACK ============ */}
         <div 
-          className={`absolute inset-0 rounded-3xl overflow-hidden ${isFlipped ? 'pointer-events-auto' : 'pointer-events-none'}`}
+          className={`absolute inset-0 rounded-3xl overflow-hidden transition-all duration-700 ${isFlipped ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0 invisible'}`}
           style={{ 
             backfaceVisibility: "hidden", 
+            WebkitBackfaceVisibility: "hidden", 
             transform: "rotateY(180deg)",
+            WebkitTransform: "rotateY(180deg)",
           }}
         >
           {/* Luxurious dark background */}
