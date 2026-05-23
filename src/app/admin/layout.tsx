@@ -1,7 +1,7 @@
 "use client";
 
 import { AdminGuard } from "@/components/admin/AdminGuard";
-import { LogOut, LayoutDashboard, Component, Settings, Home, Users, MessageSquareQuote } from "lucide-react";
+import { LogOut, LayoutDashboard, Component, Settings, Home, Users, MessageSquareQuote, Calendar } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
@@ -93,6 +93,18 @@ export default function AdminLayout({
             >
               <Users size={18} />
               Todos os Usuários
+            </Link>
+
+            <Link 
+              href="/admin/agendamentos" 
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all ${
+                pathname.includes("/admin/agendamentos") 
+                  ? "bg-gold-500/10 text-gold-400 font-medium border border-gold-500/20" 
+                  : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
+              }`}
+            >
+              <Calendar size={18} />
+              Agendamentos
             </Link>
 
             <Link 
