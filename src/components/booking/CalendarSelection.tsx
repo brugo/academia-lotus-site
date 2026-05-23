@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Calendar, Clock, Loader2 } from "lucide-react";
-import { format, addDays, isSameDay, startOfDay, parseISO, isBefore, addHours, endOfDay } from "date-fns";
+import { format, addDays, isSameDay, startOfDay, parseISO, isBefore, addHours, endOfDay, addMinutes } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
 
 type TimeSlot = { start: string; end: string };
@@ -33,8 +33,27 @@ export function CalendarSelection({ therapist, onBack, onDateSelect, requestedSe
   
   const next14Days = Array.from({ length: 14 }).map((_, i) => addDays(startOfDay(new Date()), i + (pageOffset * 14)));
   
+  type TimeSlotStart = { hour: number; minute: number };
+
   // Default hours (fallback when therapist has no availability rules)
-  const DEFAULT_HOURS = [9, 10, 11, 13, 14, 15, 16, 17];
+  const DEFAULT_HOURS: TimeSlotStart[] = [
+    { hour: 9, minute: 0 },
+    { hour: 9, minute: 30 },
+    { hour: 10, minute: 0 },
+    { hour: 10, minute: 30 },
+    { hour: 11, minute: 0 },
+    { hour: 11, minute: 30 },
+    { hour: 13, minute: 0 },
+    { hour: 13, minute: 30 },
+    { hour: 14, minute: 0 },
+    { hour: 14, minute: 30 },
+    { hour: 15, minute: 0 },
+    { hour: 15, minute: 30 },
+    { hour: 16, minute: 0 },
+    { hour: 16, minute: 30 },
+    { hour: 17, minute: 0 },
+    { hour: 17, minute: 30 }
+  ];
 
   useEffect(() => {
     async function fetchAvailability() {
@@ -66,7 +85,7 @@ export function CalendarSelection({ therapist, onBack, onDateSelect, requestedSe
   const hasWeeklyRules = availabilityRules.some(r => r.rule_type === "weekly");
 
   // Get allowed hours for a specific day, considering rules
-  const getAllowedHours = (day: Date): number[] => {
+  const getAllowedHours = (day: Date): TimeSlotStart[] => {
     const dayOfWeek = day.getDay(); // 0=domingo ... 6=sábado
     const dateStr = format(day, "yyyy-MM-dd");
 
@@ -110,23 +129,35 @@ export function CalendarSelection({ therapist, onBack, onDateSelect, requestedSe
   };
 
   // Convert time slots like [{start:"10:00",end:"12:00"},{start:"15:00",end:"18:00"}]
-  // into individual hours [10, 11, 15, 16, 17]
-  const getHoursFromSlots = (slots: TimeSlot[]): number[] => {
-    const hours: number[] = [];
+  // into individual 30-minute intervals
+  const getHoursFromSlots = (slots: TimeSlot[]): TimeSlotStart[] => {
+    const timeSlots: TimeSlotStart[] = [];
     for (const slot of slots) {
-      const startH = parseInt(slot.start.split(":")[0]);
-      const endH = parseInt(slot.end.split(":")[0]);
-      for (let h = startH; h < endH; h++) {
-        if (!hours.includes(h)) hours.push(h);
+      const [startH, startM] = slot.start.split(":").map(Number);
+      const [endH, endM] = slot.end.split(":").map(Number);
+      
+      let currentMinutes = startH * 60 + startM;
+      const endMinutes = endH * 60 + endM;
+      
+      while (currentMinutes < endMinutes) {
+        const h = Math.floor(currentMinutes / 60);
+        const m = currentMinutes % 60;
+        if (!timeSlots.some(s => s.hour === h && s.minute === m)) {
+          timeSlots.push({ hour: h, minute: m });
+        }
+        currentMinutes += 30;
       }
     }
-    return hours.sort((a, b) => a - b);
+    return timeSlots.sort((a, b) => {
+      if (a.hour !== b.hour) return a.hour - b.hour;
+      return a.minute - b.minute;
+    });
   };
 
-  // Check if a specific hour slot is free (not busy on Google Calendar)
-  const isSlotFreeOnGoogle = (hour: number, day: Date) => {
-    const slotStart = addHours(day, hour);
-    const slotEnd = addHours(day, hour + 1);
+  // Check if a specific time slot is free (not busy on Google Calendar)
+  const isSlotFreeOnGoogle = (hour: number, minute: number, day: Date) => {
+    const slotStart = addMinutes(addHours(day, hour), minute);
+    const slotEnd = addMinutes(slotStart, 60); // 1-hour appointment duration
     
     if (isBefore(slotStart, new Date())) return false;
 
@@ -153,9 +184,10 @@ export function CalendarSelection({ therapist, onBack, onDateSelect, requestedSe
   // Generate available slots for the selected day
   const allowedHours = getAllowedHours(selectedDay);
   const availableSlots = allowedHours.map(h => ({
-    hour: h,
-    date: addHours(selectedDay, h),
-    isFree: isSlotFreeOnGoogle(h, selectedDay)
+    hour: h.hour,
+    minute: h.minute,
+    date: addMinutes(addHours(selectedDay, h.hour), h.minute),
+    isFree: isSlotFreeOnGoogle(h.hour, h.minute, selectedDay)
   }));
 
   return (
@@ -277,19 +309,19 @@ export function CalendarSelection({ therapist, onBack, onDateSelect, requestedSe
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-3">
-                   {availableSlots.length > 0 ? availableSlots.map((slot) => (
-                     <button
-                       key={slot.hour}
-                       disabled={!slot.isFree}
-                       onClick={() => onDateSelect(slot.date)}
-                       className={`flex items-center justify-center py-4 rounded-xl transition-all border ${
-                         slot.isFree
-                          ? 'bg-midnight-800 border-white/10 hover:border-gold-500/50 hover:bg-gold-500/5 text-white shadow-sm'
-                          : 'bg-transparent border-dashed border-white/5 text-slate-700 cursor-not-allowed opacity-50'
-                       }`}
-                     >
-                       {slot.hour.toString().padStart(2, '0')}:00
-                     </button>
+                    {availableSlots.length > 0 ? availableSlots.map((slot) => (
+                      <button
+                        key={`${slot.hour}:${slot.minute}`}
+                        disabled={!slot.isFree}
+                        onClick={() => onDateSelect(slot.date)}
+                        className={`flex items-center justify-center py-4 rounded-xl transition-all border ${
+                          slot.isFree
+                           ? 'bg-midnight-800 border-white/10 hover:border-gold-500/50 hover:bg-gold-500/5 text-white shadow-sm'
+                           : 'bg-transparent border-dashed border-white/5 text-slate-700 cursor-not-allowed opacity-50'
+                        }`}
+                      >
+                        {slot.hour.toString().padStart(2, '0')}:{slot.minute.toString().padStart(2, '0')}
+                      </button>
                    )) : (
                       <p className="col-span-2 text-slate-500 italic py-4">Sem horários disponíveis neste dia.</p>
                    )}

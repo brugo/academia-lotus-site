@@ -120,6 +120,18 @@ export default function AdminLayout({
             </Link>
 
             <Link 
+              href="/admin/configuracoes" 
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all ${
+                pathname.includes("/admin/configuracoes") 
+                  ? "bg-gold-500/10 text-gold-400 font-medium border border-gold-500/20" 
+                  : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
+              }`}
+            >
+              <Settings size={18} />
+              Configurações
+            </Link>
+
+            <Link 
               href="/" 
               target="_blank"
               className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-slate-400 hover:bg-white/5 hover:text-slate-200 transition-all mt-8"

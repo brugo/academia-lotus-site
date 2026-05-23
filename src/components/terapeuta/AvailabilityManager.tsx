@@ -19,9 +19,10 @@ const DAYS_OF_WEEK = [
   { value: 6, label: "Sábado", short: "Sáb" },
 ];
 
-const HOUR_OPTIONS = Array.from({ length: 16 }, (_, i) => {
-  const h = i + 7; // 07:00 até 22:00
-  return `${h.toString().padStart(2, "0")}:00`;
+const HOUR_OPTIONS = Array.from({ length: 31 }, (_, i) => {
+  const h = Math.floor(i / 2) + 7; // 07:00 até 22:00
+  const m = i % 2 === 0 ? "00" : "30";
+  return `${h.toString().padStart(2, "0")}:${m}`;
 });
 
 type TimeSlot = { start: string; end: string };
@@ -118,10 +119,18 @@ export function AvailabilityManager({ therapistId }: { therapistId: string }) {
   const addSlotToDay = (dayOfWeek: number) => {
     const existing = getSlots(dayOfWeek);
     const lastEnd = existing.length > 0 ? existing[existing.length - 1].end : "09:00";
-    const nextStartH = parseInt(lastEnd.split(":")[0]) + 1;
+    const [h, m] = lastEnd.split(":").map(Number);
+    let nextStartH = h;
+    let nextStartM = m;
+    let nextEndH = nextStartH + 1;
+    let nextEndM = nextStartM;
+    if (nextEndH > 23) {
+      nextEndH = 23;
+      nextEndM = 0;
+    }
     const newSlot: TimeSlot = {
-      start: `${nextStartH.toString().padStart(2, "0")}:00`,
-      end: `${(nextStartH + 1).toString().padStart(2, "0")}:00`,
+      start: `${nextStartH.toString().padStart(2, "0")}:${nextStartM.toString().padStart(2, "0")}`,
+      end: `${nextEndH.toString().padStart(2, "0")}:${nextEndM.toString().padStart(2, "0")}`,
     };
     const newSlots = [...existing, newSlot];
 

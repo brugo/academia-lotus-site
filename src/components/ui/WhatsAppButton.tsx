@@ -8,12 +8,15 @@ import { createClient } from "@/utils/supabase/client";
 
 // Padrão caso não exista configuração no banco
 const DEFAULT_PHONE = "5511956589429";
+const DEFAULT_BUBBLE_MESSAGE = "Olá! Se precisar de ajuda, estou aqui. ✨";
 const DEFAULT_MESSAGE = "Olá! Vim através do site e gostaria de obter mais informações sobre os atendimentos e cursos. ✨";
 
 export default function WhatsAppButton() {
   const pathname = usePathname();
   const supabase = createClient();
   const [phoneNumber, setPhoneNumber] = useState(DEFAULT_PHONE);
+  const [bubbleMessage, setBubbleMessage] = useState(DEFAULT_BUBBLE_MESSAGE);
+  const [defaultMessage, setDefaultMessage] = useState(DEFAULT_MESSAGE);
   const [showBubble, setShowBubble] = useState(false);
   const [displayText, setDisplayText] = useState("");
   const [isDismissed, setIsDismissed] = useState(false);
@@ -21,9 +24,9 @@ export default function WhatsAppButton() {
   const typingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const fadeOutTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const fullText = "Olá! Se precisar de ajuda, estou aqui. ✨";
+  const fullText = bubbleMessage;
 
-  // 1. Carregar telefone das configurações globais do sistema
+  // 1. Carregar telefone e mensagens das configurações globais do sistema
   useEffect(() => {
     async function loadWhatsAppSettings() {
       try {
@@ -33,13 +36,22 @@ export default function WhatsAppButton() {
           .eq("id", "whatsapp_settings")
           .single();
 
-        if (data && data.value && (data.value as any).phone) {
-          const rawPhone = (data.value as any).phone.replace(/\D/g, "");
-          // Garantir DDI do Brasil (55) se não houver
-          const finalPhone = rawPhone.startsWith("55") && rawPhone.length >= 12
-            ? rawPhone
-            : `55${rawPhone}`;
-          setPhoneNumber(finalPhone);
+        if (data && data.value) {
+          const val = data.value as any;
+          if (val.phone) {
+            const rawPhone = val.phone.replace(/\D/g, "");
+            // Garantir DDI do Brasil (55) se não houver
+            const finalPhone = rawPhone.startsWith("55") && rawPhone.length >= 12
+              ? rawPhone
+              : `55${rawPhone}`;
+            setPhoneNumber(finalPhone);
+          }
+          if (val.bubble_message) {
+            setBubbleMessage(val.bubble_message);
+          }
+          if (val.default_message) {
+            setDefaultMessage(val.default_message);
+          }
         }
       } catch (err) {
         console.error("Erro ao carregar configurações do WhatsApp:", err);
@@ -72,30 +84,36 @@ export default function WhatsAppButton() {
       return;
     }
 
-    let currentIndex = 0;
     setDisplayText("");
 
-    // Digita caractere por caractere
+    // Digita caractere por caractere de forma totalmente robusta, baseada no comprimento atual
     typingTimerRef.current = setInterval(() => {
-      if (currentIndex < fullText.length) {
-        setDisplayText((prev) => prev + fullText.charAt(currentIndex));
-        currentIndex++;
-      } else {
-        // Digitação finalizada
-        if (typingTimerRef.current) clearInterval(typingTimerRef.current);
-        
-        // Iniciar timer de 6 segundos para desaparecer
-        fadeOutTimerRef.current = setTimeout(() => {
-          setShowBubble(false);
-        }, 6000);
-      }
+      setDisplayText((prev) => {
+        if (prev.length < fullText.length) {
+          return prev + fullText.charAt(prev.length);
+        } else {
+          if (typingTimerRef.current) clearInterval(typingTimerRef.current);
+          return prev;
+        }
+      });
     }, 45); // Velocidade de digitação elegante
 
     return () => {
       if (typingTimerRef.current) clearInterval(typingTimerRef.current);
+    };
+  }, [showBubble, fullText]);
+
+  // 4. Efeito para sumir após terminar de digitação
+  useEffect(() => {
+    if (displayText && displayText === fullText) {
+      fadeOutTimerRef.current = setTimeout(() => {
+        setShowBubble(false);
+      }, 6000);
+    }
+    return () => {
       if (fadeOutTimerRef.current) clearTimeout(fadeOutTimerRef.current);
     };
-  }, [showBubble]);
+  }, [displayText, fullText]);
 
   const handleCloseBubble = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -104,7 +122,7 @@ export default function WhatsAppButton() {
     setIsDismissed(true);
   };
 
-  const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(DEFAULT_MESSAGE)}`;
+  const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(defaultMessage)}`;
 
   // Não renderizar em rotas administrativas ou de login (executado com segurança após todos os hooks)
   if (pathname?.startsWith("/admin") || pathname?.startsWith("/login")) {
