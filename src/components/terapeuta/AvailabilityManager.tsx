@@ -19,11 +19,18 @@ const DAYS_OF_WEEK = [
   { value: 6, label: "Sábado", short: "Sáb" },
 ];
 
-const HOUR_OPTIONS = Array.from({ length: 31 }, (_, i) => {
-  const h = Math.floor(i / 2) + 7; // 07:00 até 22:00
-  const m = i % 2 === 0 ? "00" : "30";
-  return `${h.toString().padStart(2, "0")}:${m}`;
-});
+const formatTime = (time: string): string | null => {
+  const clean = time.trim();
+  if (/^\d{1,2}:\d{2}$/.test(clean)) {
+    const [h, m] = clean.split(":");
+    const hourNum = parseInt(h, 10);
+    const minNum = parseInt(m, 10);
+    if (hourNum >= 0 && hourNum <= 23 && minNum >= 0 && minNum <= 59) {
+      return `${h.padStart(2, "0")}:${m.padStart(2, "0")}`;
+    }
+  }
+  return null;
+};
 
 type TimeSlot = { start: string; end: string };
 type AvailabilityRule = {
@@ -91,6 +98,21 @@ export function AvailabilityManager({ therapistId }: { therapistId: string }) {
   const saveWeeklyRule = async (dayOfWeek: number, slots: TimeSlot[], blocked: boolean) => {
     setSaving(true);
     setError(null);
+
+    // Validar e formatar horários se não estiver bloqueado
+    const formattedSlots: TimeSlot[] = [];
+    if (!blocked) {
+      for (const slot of slots) {
+        const formatted = formatTime(slot.start);
+        if (!formatted) {
+          setError(`Formato de horário inválido: "${slot.start}". Use o formato HH:MM (ex: 10:35, 14:40).`);
+          setSaving(false);
+          return;
+        }
+        formattedSlots.push({ start: formatted, end: formatted });
+      }
+    }
+
     try {
       const res = await fetch("/api/therapist/availability", {
         method: "POST",
@@ -99,7 +121,7 @@ export function AvailabilityManager({ therapistId }: { therapistId: string }) {
           therapist_id: therapistId,
           rule_type: "weekly",
           day_of_week: dayOfWeek,
-          time_slots: slots,
+          time_slots: formattedSlots,
           is_blocked: blocked,
         }),
       });
@@ -118,19 +140,19 @@ export function AvailabilityManager({ therapistId }: { therapistId: string }) {
   // Adicionar slot a um dia da semana (local)
   const addSlotToDay = (dayOfWeek: number) => {
     const existing = getSlots(dayOfWeek);
-    const lastEnd = existing.length > 0 ? existing[existing.length - 1].end : "09:00";
-    const [h, m] = lastEnd.split(":").map(Number);
-    let nextStartH = h;
-    let nextStartM = m;
-    let nextEndH = nextStartH + 1;
-    let nextEndM = nextStartM;
-    if (nextEndH > 23) {
-      nextEndH = 23;
-      nextEndM = 0;
+    let nextTime = "10:00";
+    if (existing.length > 0) {
+      const lastStart = existing[existing.length - 1].start;
+      const [h, m] = lastStart.split(":").map(Number);
+      if (!isNaN(h) && !isNaN(m)) {
+        let nextH = h + 1;
+        if (nextH > 23) nextH = 23;
+        nextTime = `${nextH.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+      }
     }
     const newSlot: TimeSlot = {
-      start: `${nextStartH.toString().padStart(2, "0")}:${nextStartM.toString().padStart(2, "0")}`,
-      end: `${nextEndH.toString().padStart(2, "0")}:${nextEndM.toString().padStart(2, "0")}`,
+      start: nextTime,
+      end: nextTime,
     };
     const newSlots = [...existing, newSlot];
 
@@ -202,6 +224,21 @@ export function AvailabilityManager({ therapistId }: { therapistId: string }) {
     if (!overrideDate) return;
     setSaving(true);
     setError(null);
+
+    // Validar e formatar horários se não estiver bloqueado
+    const formattedSlots: TimeSlot[] = [];
+    if (!overrideBlocked) {
+      for (const slot of overrideSlots) {
+        const formatted = formatTime(slot.start);
+        if (!formatted) {
+          setError(`Formato de horário inválido: "${slot.start}". Use o formato HH:MM (ex: 10:35, 14:40).`);
+          setSaving(false);
+          return;
+        }
+        formattedSlots.push({ start: formatted, end: formatted });
+      }
+    }
+
     try {
       const res = await fetch("/api/therapist/availability", {
         method: "POST",
@@ -210,7 +247,7 @@ export function AvailabilityManager({ therapistId }: { therapistId: string }) {
           therapist_id: therapistId,
           rule_type: "date_override",
           specific_date: overrideDate,
-          time_slots: overrideBlocked ? [] : overrideSlots,
+          time_slots: formattedSlots,
           is_blocked: overrideBlocked,
         }),
       });
@@ -307,7 +344,7 @@ export function AvailabilityManager({ therapistId }: { therapistId: string }) {
                       <span className="text-white font-medium block">{day.label}</span>
                       <span className="text-xs text-slate-400">
                         {blocked ? "🔒 Dia bloqueado" :
-                         slots.length > 0 ? slots.map(s => `${s.start}–${s.end}`).join(" • ") :
+                         slots.length > 0 ? slots.map(s => s.start === s.end ? s.start : `${s.start}–${s.end}`).join(" • ") :
                          "Sem restrição (agenda aberta o dia todo)"}
                       </span>
                     </div>
@@ -335,29 +372,25 @@ export function AvailabilityManager({ therapistId }: { therapistId: string }) {
                     {!blocked && (
                       <>
                         <p className="text-xs text-slate-500 mb-4">
-                          Adicione as faixas de horário em que você atende neste dia. Se nenhuma faixa for adicionada, o dia inteiro será considerado disponível (agenda aberta).
+                          Adicione os horários em que você atende neste dia. Se nenhum horário for adicionado, o dia inteiro será considerado disponível (agenda aberta).
                         </p>
 
                         {/* Slots */}
                         <div className="space-y-3 mb-4">
                           {slots.map((slot, idx) => (
-                            <div key={idx} className="flex items-center gap-3 flex-wrap">
-                              <span className="text-xs text-slate-400 w-8">De</span>
-                              <select
+                            <div key={idx} className="flex items-center gap-3">
+                              <span className="text-xs text-slate-400 w-14">Horário</span>
+                              <input
+                                type="text"
+                                placeholder="Ex: 10:35"
                                 value={slot.start}
-                                onChange={(e) => updateSlot(day.value, idx, "start", e.target.value)}
-                                className="bg-midnight-950 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-emerald-500 transition-colors"
-                              >
-                                {HOUR_OPTIONS.map(h => <option key={h} value={h}>{h}</option>)}
-                              </select>
-                              <span className="text-xs text-slate-400 w-8">Até</span>
-                              <select
-                                value={slot.end}
-                                onChange={(e) => updateSlot(day.value, idx, "end", e.target.value)}
-                                className="bg-midnight-950 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-emerald-500 transition-colors"
-                              >
-                                {HOUR_OPTIONS.map(h => <option key={h} value={h}>{h}</option>)}
-                              </select>
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  updateSlot(day.value, idx, "start", val);
+                                  updateSlot(day.value, idx, "end", val);
+                                }}
+                                className="bg-midnight-950 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-emerald-500 transition-colors w-32"
+                              />
                               <button
                                 onClick={() => removeSlotFromDay(day.value, idx)}
                                 className="p-2 hover:bg-red-500/20 text-slate-500 hover:text-red-400 rounded-lg transition-all"
@@ -372,7 +405,7 @@ export function AvailabilityManager({ therapistId }: { therapistId: string }) {
                           onClick={() => addSlotToDay(day.value)}
                           className="flex items-center gap-2 text-sm text-emerald-400 hover:text-emerald-300 transition-colors"
                         >
-                          <Plus size={14} /> Adicionar faixa de horário
+                          <Plus size={14} /> Adicionar horário
                         </button>
                       </>
                     )}
@@ -466,31 +499,20 @@ export function AvailabilityManager({ therapistId }: { therapistId: string }) {
               {!overrideBlocked && (
                 <div className="space-y-3 pl-7">
                   {overrideSlots.map((slot, idx) => (
-                    <div key={idx} className="flex items-center gap-3 flex-wrap">
-                      <span className="text-xs text-slate-400 w-8">De</span>
-                      <select
+                    <div key={idx} className="flex items-center gap-3">
+                      <span className="text-xs text-slate-400 w-14">Horário</span>
+                      <input
+                        type="text"
+                        placeholder="Ex: 10:35"
                         value={slot.start}
                         onChange={(e) => {
+                          const val = e.target.value;
                           const newSlots = [...overrideSlots];
-                          newSlots[idx] = { ...newSlots[idx], start: e.target.value };
+                          newSlots[idx] = { start: val, end: val };
                           setOverrideSlots(newSlots);
                         }}
-                        className="bg-midnight-950 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500"
-                      >
-                        {HOUR_OPTIONS.map(h => <option key={h} value={h}>{h}</option>)}
-                      </select>
-                      <span className="text-xs text-slate-400 w-8">Até</span>
-                      <select
-                        value={slot.end}
-                        onChange={(e) => {
-                          const newSlots = [...overrideSlots];
-                          newSlots[idx] = { ...newSlots[idx], end: e.target.value };
-                          setOverrideSlots(newSlots);
-                        }}
-                        className="bg-midnight-950 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500"
-                      >
-                        {HOUR_OPTIONS.map(h => <option key={h} value={h}>{h}</option>)}
-                      </select>
+                        className="bg-midnight-950 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500 transition-colors w-32"
+                      />
                       <button
                         onClick={() => setOverrideSlots(overrideSlots.filter((_, i) => i !== idx))}
                         className="p-2 hover:bg-red-500/20 text-slate-500 hover:text-red-400 rounded-lg transition-all"
@@ -500,10 +522,10 @@ export function AvailabilityManager({ therapistId }: { therapistId: string }) {
                     </div>
                   ))}
                   <button
-                    onClick={() => setOverrideSlots([...overrideSlots, { start: "09:00", end: "12:00" }])}
+                    onClick={() => setOverrideSlots([...overrideSlots, { start: "10:00", end: "10:00" }])}
                     className="flex items-center gap-2 text-sm text-amber-400 hover:text-amber-300 transition-colors"
                   >
-                    <Plus size={14} /> Adicionar faixa
+                    <Plus size={14} /> Adicionar horário
                   </button>
                 </div>
               )}
@@ -561,7 +583,7 @@ export function AvailabilityManager({ therapistId }: { therapistId: string }) {
                         </span>
                         <span className="text-xs text-slate-400">
                           {rule.is_blocked ? "Dia inteiro bloqueado" :
-                           rule.time_slots.map(s => `${s.start}–${s.end}`).join(" • ")}
+                           rule.time_slots.map(s => s.start === s.end ? s.start : `${s.start}–${s.end}`).join(" • ")}
                         </span>
                       </div>
                     </div>

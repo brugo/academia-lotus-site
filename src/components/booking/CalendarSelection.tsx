@@ -128,24 +128,43 @@ export function CalendarSelection({ therapist, onBack, onDateSelect, requestedSe
     return DEFAULT_HOURS;
   };
 
-  // Convert time slots like [{start:"10:00",end:"12:00"},{start:"15:00",end:"18:00"}]
-  // into individual 30-minute intervals
+  // Convert time slots like [{start:"10:35",end:"10:35"}] or ranges like [{start:"10:00",end:"12:00"}]
+  // into individual precise intervals
   const getHoursFromSlots = (slots: TimeSlot[]): TimeSlotStart[] => {
     const timeSlots: TimeSlotStart[] = [];
     for (const slot of slots) {
+      if (!slot.start) continue;
+      
       const [startH, startM] = slot.start.split(":").map(Number);
-      const [endH, endM] = slot.end.split(":").map(Number);
+      if (isNaN(startH) || isNaN(startM)) continue;
       
-      let currentMinutes = startH * 60 + startM;
-      const endMinutes = endH * 60 + endM;
-      
-      while (currentMinutes < endMinutes) {
-        const h = Math.floor(currentMinutes / 60);
-        const m = currentMinutes % 60;
-        if (!timeSlots.some(s => s.hour === h && s.minute === m)) {
-          timeSlots.push({ hour: h, minute: m });
+      // If start equals end, or end is not provided/invalid, treat as a single precise time
+      if (!slot.end || slot.start === slot.end) {
+        if (!timeSlots.some(s => s.hour === startH && s.minute === startM)) {
+          timeSlots.push({ hour: startH, minute: startM });
         }
-        currentMinutes += 30;
+      } else {
+        // Otherwise, treat as a range and generate 30-minute intervals (backward compatibility)
+        const [endH, endM] = slot.end.split(":").map(Number);
+        if (isNaN(endH) || isNaN(endM)) {
+          // Fallback to single precise time if end is invalid
+          if (!timeSlots.some(s => s.hour === startH && s.minute === startM)) {
+            timeSlots.push({ hour: startH, minute: startM });
+          }
+          continue;
+        }
+        
+        let currentMinutes = startH * 60 + startM;
+        const endMinutes = endH * 60 + endM;
+        
+        while (currentMinutes < endMinutes) {
+          const h = Math.floor(currentMinutes / 60);
+          const m = currentMinutes % 60;
+          if (!timeSlots.some(s => s.hour === h && s.minute === m)) {
+            timeSlots.push({ hour: h, minute: m });
+          }
+          currentMinutes += 30;
+        }
       }
     }
     return timeSlots.sort((a, b) => {
