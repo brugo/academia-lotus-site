@@ -7,6 +7,7 @@ import Footer from "@/components/layout/Footer";
 import SmoothScrollProvider from "@/components/providers/SmoothScrollProvider";
 import { createClient } from "@/utils/supabase/server";
 import Script from "next/script";
+import WhatsAppButton from "@/components/ui/WhatsAppButton";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -45,6 +46,7 @@ export default async function RootLayout({
             {children}
           </main>
           <Footer />
+          <WhatsAppButton />
         </SmoothScrollProvider>
         {/* Google Tag (gtag.js) */}
         <Script

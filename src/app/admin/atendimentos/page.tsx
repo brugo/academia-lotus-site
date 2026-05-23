@@ -39,6 +39,25 @@ export default function ServicesAdminPage() {
   const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
   const [isSavingMaintenance, setIsSavingMaintenance] = useState(false);
   
+  const [whatsappPhone, setWhatsappPhone] = useState("(11) 95658-9429");
+  const [isSavingWhatsapp, setIsSavingWhatsapp] = useState(false);
+
+  const formatPhoneMask = (val: string) => {
+    const numbers = val.replace(/\D/g, "");
+    const truncated = numbers.slice(0, 11);
+    
+    if (truncated.length <= 2) {
+      return truncated ? `(${truncated}` : "";
+    }
+    if (truncated.length <= 6) {
+      return `(${truncated.slice(0, 2)}) ${truncated.slice(2)}`;
+    }
+    if (truncated.length <= 10) {
+      return `(${truncated.slice(0, 2)}) ${truncated.slice(2, 6)}-${truncated.slice(6)}`;
+    }
+    return `(${truncated.slice(0, 2)}) ${truncated.slice(2, 7)}-${truncated.slice(7)}`;
+  };
+  
   const [formData, setFormData] = useState<Partial<DatabaseService>>({
     title: "", description: "", short_subtitle: "", duration: "1h", icon: "Star", image_url: "", is_active: true, benefits: [], order_index: 0, is_featured: false, base_price: 150, show_booking_button: true, whatsapp_number: "", whatsapp_button_text: ""
   });
@@ -52,17 +71,23 @@ export default function ServicesAdminPage() {
 
   const fetchData = async () => {
     setLoading(true);
-    const [sRes, tRes, feeRes, maintenanceRes] = await Promise.all([
+    const [sRes, tRes, feeRes, maintenanceRes, whatsappRes] = await Promise.all([
       supabase.from("services").select("*").order("order_index", { ascending: true }),
       supabase.from("therapists").select("*").order("name", { ascending: true }),
       supabase.from("system_settings").select("value").eq("id", "reservation_fee").single(),
-      supabase.from("system_settings").select("value").eq("id", "maintenance_mode").single()
+      supabase.from("system_settings").select("value").eq("id", "maintenance_mode").single(),
+      supabase.from("system_settings").select("value").eq("id", "whatsapp_settings").single()
     ]);
     
     if (sRes.data) setServices(sRes.data);
     if (tRes.data) setTherapists(tRes.data as DatabaseTherapist[]);
     if (feeRes.data && feeRes.data.value) setReservationFee(feeRes.data.value.amount || 50);
     if (maintenanceRes.data && maintenanceRes.data.value) setIsMaintenanceMode(maintenanceRes.data.value.enabled === true);
+    if (whatsappRes.data && whatsappRes.data.value && (whatsappRes.data.value as any).phone) {
+      setWhatsappPhone(formatPhoneMask((whatsappRes.data.value as any).phone));
+    } else {
+      setWhatsappPhone(formatPhoneMask("11956589429"));
+    }
     
     setLoading(false);
   };
@@ -170,6 +195,27 @@ export default function ServicesAdminPage() {
     alert('Taxa de agendamento salva com sucesso!');
   };
 
+  const handleSaveWhatsapp = async () => {
+    setIsSavingWhatsapp(true);
+    const cleanPhone = whatsappPhone.replace(/\D/g, "");
+    if (cleanPhone.length > 0 && cleanPhone.length < 10) {
+      alert("Por favor, digite um número de WhatsApp válido com DDD.");
+      setIsSavingWhatsapp(false);
+      return;
+    }
+    const { error } = await supabase.from('system_settings').upsert({
+      id: 'whatsapp_settings',
+      value: { phone: cleanPhone }
+    });
+    
+    setIsSavingWhatsapp(false);
+    if (!error) {
+      alert('Número do WhatsApp atualizado com sucesso!');
+    } else {
+      alert('Erro ao salvar o número do WhatsApp: ' + error.message);
+    }
+  };
+
   const editService = (s: DatabaseService) => {
     setFormData({ ...s });
     setBenefitsInput(s.benefits ? s.benefits.join(", ") : "");
@@ -251,7 +297,7 @@ export default function ServicesAdminPage() {
       {activeTab === 'content' && (
         <div className="space-y-8">
           
-          <div className="bg-midnight-950/50 p-6 rounded-2xl border border-white/5 shadow-inner mb-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="bg-midnight-950/50 p-6 rounded-2xl border border-white/5 shadow-inner mb-8 grid grid-cols-1 xl:grid-cols-3 gap-8">
             <div>
               <h3 className="text-lg font-serif text-white mb-2">Taxa de Reserva Global</h3>
               <p className="text-slate-400 text-sm mb-4">Este é o valor cobrado via Asaas no ato do agendamento para confirmar a reserva (sinal), independente do valor total da técnica.</p>
@@ -266,7 +312,7 @@ export default function ServicesAdminPage() {
               </div>
             </div>
 
-            <div className="border-t md:border-t-0 md:border-l border-white/10 pt-6 md:pt-0 md:pl-8">
+            <div className="border-t xl:border-t-0 xl:border-l border-white/10 pt-6 xl:pt-0 xl:pl-8">
               <h3 className="text-lg font-serif text-white mb-2">Modo Em Construção</h3>
               <p className="text-slate-400 text-sm mb-4">Quando ativo, o público geral será redirecionado para a página de manutenção. Administradores e alunos com link direto de login continuarão com acesso normal ao sistema.</p>
               <div className="flex items-center gap-4">
@@ -280,6 +326,27 @@ export default function ServicesAdminPage() {
                 <span className={`font-medium ${isMaintenanceMode ? 'text-gold-400' : 'text-slate-500'}`}>
                   {isSavingMaintenance ? 'Salvando...' : isMaintenanceMode ? 'Site Bloqueado (Em Construção)' : 'Site Aberto ao Público'}
                 </span>
+              </div>
+            </div>
+
+            <div className="border-t xl:border-t-0 xl:border-l border-white/10 pt-6 xl:pt-0 xl:pl-8">
+              <h3 className="text-lg font-serif text-white mb-2">WhatsApp de Atendimento</h3>
+              <p className="text-slate-400 text-sm mb-4">Este é o número usado pelo botão flutuante em todo o site. Altere instantaneamente caso a secretária fique indisponível.</p>
+              <div className="flex flex-col gap-3 max-w-sm">
+                <input 
+                  type="text" 
+                  value={whatsappPhone} 
+                  onChange={e => setWhatsappPhone(formatPhoneMask(e.target.value))} 
+                  className="w-full bg-midnight-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-gold-500" 
+                  placeholder="(11) 95658-9429"
+                />
+                <button 
+                  onClick={handleSaveWhatsapp} 
+                  disabled={isSavingWhatsapp} 
+                  className="w-full py-3.5 bg-gold-600 hover:bg-gold-500 text-midnight-950 font-medium rounded-xl transition-all"
+                >
+                  {isSavingWhatsapp ? 'Salvando...' : 'Salvar Número'}
+                </button>
               </div>
             </div>
           </div>
