@@ -37,7 +37,7 @@ export default async function TerapeutasPage() {
   const pageBlocks = (pageBlocksData || []).filter(b => b.content?.page === 'terapeutas');
 
   return (
-    <div className="min-h-screen pt-32 pb-24 relative overflow-hidden">
+    <div className="min-h-screen pt-24 md:pt-32 pb-24 relative overflow-hidden">
       {/* Background animado e fundo paralax novo */}
       <GoldenParticles />
 

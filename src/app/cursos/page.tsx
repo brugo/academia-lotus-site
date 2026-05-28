@@ -18,7 +18,7 @@ export default async function CursosPage() {
 
   const pageBlocks = (pageBlocksData || []).filter(b => b.content?.page === 'cursos');
   return (
-    <div className="min-h-screen pt-32 pb-24 relative overflow-hidden">
+    <div className="min-h-screen pt-24 md:pt-32 pb-24 relative overflow-hidden">
       {/* Background elements */}
       <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-gold-900/10 via-midnight-950 to-midnight-950 -z-10" />
 

@@ -26,6 +26,19 @@ export default async function AtendimentoPage({ params, searchParams }: { params
   const { data: feeData } = await supabase.from('system_settings').select('value').eq('id', 'reservation_fee').single();
   const reservationFee = feeData?.value?.amount || 50;
 
+  const { data: whatsappSettingsData } = await supabase
+    .from("system_settings")
+    .select("value")
+    .eq("id", "whatsapp_settings")
+    .single();
+
+  const globalWhatsapp = (whatsappSettingsData?.value as any)?.phone || "5511956589429";
+  const cleanGlobalWhatsapp = globalWhatsapp.replace(/\D/g, "");
+  const finalGlobalWhatsapp = cleanGlobalWhatsapp.startsWith("55") && cleanGlobalWhatsapp.length >= 12
+    ? cleanGlobalWhatsapp
+    : `55${cleanGlobalWhatsapp}`;
+  const whatsappGlobalUrl = `https://wa.me/${finalGlobalWhatsapp}`;
+
   const service = serviceRes as DatabaseService | null;
 
   // Fallback se não encontrar
@@ -110,58 +123,55 @@ export default async function AtendimentoPage({ params, searchParams }: { params
 
               {/* Sidebar do Card com Detalhes */}
               <div className="md:w-1/3 flex flex-col gap-6">
-                 <RevealText delay={0.6} className="bg-midnight-950/80 border border-white/5 rounded-2xl p-6 flex items-start gap-4 hover:border-gold-500/20 transition-colors">
-                    <Clock className="text-gold-500 mt-1" size={24} />
-                    <div>
-                      <h4 className="text-white font-medium mb-1">Duração Média</h4>
-                      <p className="text-slate-400 font-light text-sm">{data.duration}</p>
-                    </div>
-                 </RevealText>
                  
                  <RevealText delay={0.65} className="bg-midnight-950/80 border border-white/5 rounded-2xl p-6 hover:border-gold-500/20 transition-colors">
-                    <h4 className="text-white font-medium mb-3">Valores do Encontro</h4>
-                    <div className="flex justify-between items-end mb-2">
-                      <span className="text-slate-400 font-light text-sm">Valor da Consulta</span>
-                      <span className="text-gold-400 font-medium">R$ {data.base_price?.toFixed(2) || '150.00'}</span>
-                    </div>
-                    {showBooking && (
-                      <>
-                        <div className="flex justify-between items-end pt-3 border-t border-white/10">
-                          <span className="text-slate-300 font-medium text-sm">Taxa de Reserva</span>
-                          <span className="text-white font-serif text-lg">R$ {reservationFee.toFixed(2)}</span>
-                        </div>
-                        <p className="text-xs text-slate-500 mt-4 leading-relaxed">
-                          Este valor inicial garante a exclusividade do seu horário e <strong className="text-slate-400">será abatido do valor total da consulta</strong> no dia do atendimento.
-                        </p>
-                      </>
-                    )}
+                     <h4 className="text-white font-medium mb-3">Valores do Encontro</h4>
+                     
+                     {/* Preço e Duração Agrupados */}
+                     <div className="flex flex-col gap-2.5 border-b border-white/10 pb-4">
+                       <div className="flex justify-between items-center">
+                         <span className="text-slate-400 font-light text-sm">Valor da Consulta</span>
+                         <span className="text-gold-400 font-medium text-lg">R$ {data.base_price?.toFixed(2) || '150.00'}</span>
+                       </div>
+                       <div className="flex justify-between items-center text-xs">
+                         <span className="text-slate-500 font-light">Duração Média</span>
+                         <span className="text-slate-300 font-medium">{data.duration}</span>
+                       </div>
+                     </div>
 
-                    {/* Botões de Ação na Sidebar */}
-                    {(showBooking || hasWhatsApp) && (
-                      <div className="mt-6 flex flex-col gap-3">
-                        {showBooking && (
-                          <Link 
-                            href={`/agendamento?servico=${encodeURIComponent(data.title)}${terapeutaId ? `&terapeutaId=${terapeutaId}` : ''}`}
-                            className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-gold-600 via-gold-500 to-gold-400 text-midnight-950 py-3.5 px-4 rounded-xl font-bold uppercase tracking-wider text-xs shadow-[0_0_20px_rgba(212,175,55,0.15)] hover:shadow-[0_0_35px_rgba(212,175,55,0.35)] hover:-translate-y-0.5 transition-all duration-300"
-                          >
-                            <CalendarHeart size={16} />
-                            Agendar Agora
-                          </Link>
-                        )}
-                        {hasWhatsApp && (
-                          <a 
-                            href={whatsappLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-400 text-white py-3.5 px-4 rounded-xl font-bold uppercase tracking-wider text-xs shadow-[0_0_20px_rgba(16,185,129,0.15)] hover:shadow-[0_0_35px_rgba(16,185,129,0.35)] hover:-translate-y-0.5 transition-all duration-300"
-                          >
-                            <MessageCircle size={16} />
-                            {whatsappText}
-                          </a>
-                        )}
-                      </div>
-                    )}
-                 </RevealText>
+                     {/* Botões de Ação Diretos */}
+                     <div className="mt-5 flex flex-col gap-3">
+                       {showBooking && (
+                         <Link 
+                           href={`/agendamento?servico=${encodeURIComponent(data.title)}${terapeutaId ? `&terapeutaId=${terapeutaId}` : ''}`}
+                           className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-gold-600 via-gold-500 to-gold-400 text-midnight-950 py-3.5 px-4 rounded-xl font-bold uppercase tracking-wider text-xs shadow-[0_0_20px_rgba(212,175,55,0.15)] hover:shadow-[0_0_35px_rgba(212,175,55,0.35)] hover:-translate-y-0.5 transition-all duration-300"
+                         >
+                           <CalendarHeart size={16} />
+                           Agendar Agora
+                         </Link>
+                       )}
+
+                       {/* Separador ou */}
+                       {showBooking && (
+                         <div className="flex items-center justify-center gap-3 my-1">
+                           <div className="h-[1px] bg-white/10 flex-1" />
+                           <span className="text-[10px] text-slate-500 uppercase tracking-widest font-medium">ou</span>
+                           <div className="h-[1px] bg-white/10 flex-1" />
+                         </div>
+                       )}
+
+                       {/* Botão de agendamento via WhatsApp utilizando o telefone global */}
+                       <a 
+                         href={whatsappGlobalUrl}
+                         target="_blank"
+                         rel="noopener noreferrer"
+                         className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-400 text-white py-3.5 px-4 rounded-xl font-bold uppercase tracking-wider text-xs shadow-[0_0_20px_rgba(16,185,129,0.15)] hover:shadow-[0_0_35px_rgba(16,185,129,0.35)] hover:-translate-y-0.5 transition-all duration-300"
+                       >
+                         <MessageCircle size={16} />
+                         Agendar via WhatsApp
+                       </a>
+                     </div>
+                  </RevealText>
                  
                  <RevealText delay={0.7} className="bg-midnight-950/80 border border-white/10 rounded-2xl p-6 relative overflow-hidden group hover:border-gold-500/20 transition-colors">
                     <div className="absolute inset-0 bg-gradient-to-br from-gold-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
