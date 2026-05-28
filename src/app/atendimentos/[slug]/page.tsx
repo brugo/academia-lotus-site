@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { RevealText } from "@/components/ui/RevealText";
-import { Sparkles, ArrowLeft, Clock, CalendarHeart, MessageCircle } from "lucide-react";
+import { Sparkles, Clock, CalendarHeart, MessageCircle } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 import type { DatabaseService } from "@/lib/types";
 import { formatWhatsAppLink } from "@/lib/whatsapp";
@@ -52,7 +52,7 @@ export default async function AtendimentoPage({ params, searchParams }: { params
   return (
     <div className="min-h-screen bg-midnight-950 selection:bg-gold-500/30 selection:text-white">
       {/* Hero Section */}
-      <div className="relative min-h-[70vh] py-32 flex items-center justify-center overflow-hidden">
+      <div className="relative min-h-[45vh] md:min-h-[55vh] pt-24 pb-16 md:py-32 flex items-center justify-center overflow-hidden">
         {/* Camadas Mágicas de Fundo */}
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-b from-midnight-950/40 via-midnight-950/60 to-midnight-950 z-10" />
@@ -63,11 +63,7 @@ export default async function AtendimentoPage({ params, searchParams }: { params
           </div>
         </div>
         
-        <div className="relative z-20 text-center px-6 mt-16 max-w-5xl mx-auto flex flex-col items-center pb-20">
-          <Link href="/" className="self-start sm:self-center mb-8 inline-flex items-center gap-2 text-slate-400 hover:text-gold-400 transition-colors">
-             <ArrowLeft size={16} /> <span className="text-sm tracking-widest uppercase">Voltar ao Início</span>
-          </Link>
-
+        <div className="relative z-20 text-center px-6 mt-4 md:mt-8 max-w-5xl mx-auto flex flex-col items-center pb-12 md:pb-20">
           <RevealText element="div" delay={0.1} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gold-500/10 border border-gold-500/20 text-gold-400 text-xs font-medium tracking-widest uppercase mb-6">
             <Sparkles size={14} /> Atendimentos Lótus
           </RevealText>
