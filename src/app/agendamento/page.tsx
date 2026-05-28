@@ -8,11 +8,12 @@ export default async function AgendamentoPage({ searchParams }: { searchParams: 
   const supabase = await createClient();
 
   
-  // Buscar terapeutas ativos
+  // Buscar terapeutas ativos ordenados pelo índice do painel administrativo
   const { data: therapists } = await supabase
     .from("therapists")
     .select("*")
-    .eq("is_active", true);
+    .eq("is_active", true)
+    .order("order_index", { ascending: true });
 
   const { data: { user } } = await supabase.auth.getUser();
 

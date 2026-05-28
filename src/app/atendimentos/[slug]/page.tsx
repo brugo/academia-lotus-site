@@ -89,7 +89,7 @@ export default async function AtendimentoPage({ params, searchParams }: { params
             {/* Brilho Mágico no card */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-gold-500/5 blur-[80px] rounded-full pointer-events-none" />
 
-            <div className="flex flex-col md:flex-row gap-12 relative z-10">
+            <div className="flex flex-col-reverse md:flex-row gap-12 relative z-10">
               <div className="flex-1 space-y-8">
                 <RevealText element="h3" delay={0.4} className="font-serif text-3xl text-white">Sobre a Técnica</RevealText>
                 
@@ -138,6 +138,32 @@ export default async function AtendimentoPage({ params, searchParams }: { params
                           Este valor inicial garante a exclusividade do seu horário e <strong className="text-slate-400">será abatido do valor total da consulta</strong> no dia do atendimento.
                         </p>
                       </>
+                    )}
+
+                    {/* Botões de Ação na Sidebar */}
+                    {(showBooking || hasWhatsApp) && (
+                      <div className="mt-6 flex flex-col gap-3">
+                        {showBooking && (
+                          <Link 
+                            href={`/agendamento?servico=${encodeURIComponent(data.title)}${terapeutaId ? `&terapeutaId=${terapeutaId}` : ''}`}
+                            className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-gold-600 via-gold-500 to-gold-400 text-midnight-950 py-3.5 px-4 rounded-xl font-bold uppercase tracking-wider text-xs shadow-[0_0_20px_rgba(212,175,55,0.15)] hover:shadow-[0_0_35px_rgba(212,175,55,0.35)] hover:-translate-y-0.5 transition-all duration-300"
+                          >
+                            <CalendarHeart size={16} />
+                            Agendar Agora
+                          </Link>
+                        )}
+                        {hasWhatsApp && (
+                          <a 
+                            href={whatsappLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-400 text-white py-3.5 px-4 rounded-xl font-bold uppercase tracking-wider text-xs shadow-[0_0_20px_rgba(16,185,129,0.15)] hover:shadow-[0_0_35px_rgba(16,185,129,0.35)] hover:-translate-y-0.5 transition-all duration-300"
+                          >
+                            <MessageCircle size={16} />
+                            {whatsappText}
+                          </a>
+                        )}
+                      </div>
                     )}
                  </RevealText>
                  
