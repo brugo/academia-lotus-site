@@ -12,7 +12,8 @@ import {
   DollarSign, 
   MessageSquare,
   Sparkles,
-  Phone
+  Phone,
+  Clock
 } from "lucide-react";
 
 export default function SettingsAdminPage() {
@@ -23,6 +24,9 @@ export default function SettingsAdminPage() {
   const [whatsappPhone, setWhatsappPhone] = useState("(11) 95658-9429");
   const [bubbleMessage, setBubbleMessage] = useState("Olá! Se precisar de ajuda, estou aqui. ✨");
   const [defaultMessage, setDefaultMessage] = useState("Olá! Vim através do site e gostaria de obter mais informações sobre os atendimentos e cursos. ✨");
+  const [bubbleEnabled, setBubbleEnabled] = useState(true);
+  const [bubbleDelay, setBubbleDelay] = useState(2);
+  const [bubbleDuration, setBubbleDuration] = useState(6);
   const [isSavingWhatsapp, setIsSavingWhatsapp] = useState(false);
 
   // Maintenance States
@@ -80,8 +84,14 @@ export default function SettingsAdminPage() {
       if (val.default_message) {
         setDefaultMessage(val.default_message);
       }
+      setBubbleEnabled(val.bubble_enabled !== false);
+      setBubbleDelay(val.bubble_delay !== undefined ? Number(val.bubble_delay) : 2);
+      setBubbleDuration(val.bubble_duration !== undefined ? Number(val.bubble_duration) : 6);
     } else {
       setWhatsappPhone(formatPhoneMask("11956589429"));
+      setBubbleEnabled(true);
+      setBubbleDelay(2);
+      setBubbleDuration(6);
     }
     
     setLoading(false);
@@ -100,7 +110,10 @@ export default function SettingsAdminPage() {
       value: { 
         phone: cleanPhone,
         bubble_message: bubbleMessage,
-        default_message: defaultMessage
+        default_message: defaultMessage,
+        bubble_enabled: bubbleEnabled,
+        bubble_delay: Number(bubbleDelay),
+        bubble_duration: Number(bubbleDuration)
       }
     });
     
@@ -213,6 +226,67 @@ export default function SettingsAdminPage() {
                 />
                 <p className="text-[11px] text-slate-500">Aparece temporariamente por cima do botão flutuante para chamar atenção de forma sutil.</p>
               </div>
+
+              {/* Ativação do Balão de Conversa */}
+              <div className="flex items-center justify-between p-4 bg-midnight-950 rounded-xl border border-white/5">
+                <div className="flex items-center gap-3">
+                  <MessageSquare className={bubbleEnabled ? "text-gold-400" : "text-slate-500"} size={20} />
+                  <div>
+                    <span className={`text-sm font-medium ${bubbleEnabled ? 'text-gold-400' : 'text-slate-300'}`}>
+                      {bubbleEnabled ? 'Balão de Conversa Ativo' : 'Balão de Conversa Desativado'}
+                    </span>
+                    <p className="text-[11px] text-slate-500">Ativa o balão flutuante temporário com efeito máquina de escrever.</p>
+                  </div>
+                </div>
+                
+                <button 
+                  type="button"
+                  onClick={() => setBubbleEnabled(!bubbleEnabled)} 
+                  className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors focus:outline-none ${bubbleEnabled ? 'bg-gold-500' : 'bg-slate-700'}`}
+                >
+                  <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${bubbleEnabled ? 'translate-x-8' : 'translate-x-1'}`} />
+                </button>
+              </div>
+
+              {bubbleEnabled && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 animate-in fade-in duration-300">
+                  {/* Atraso de Exibição */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-slate-300 flex items-center gap-2">
+                      <Clock size={12} className="text-gold-400" />
+                      Atraso para Exibir (segundos)
+                    </label>
+                    <input 
+                      type="number" 
+                      min="0"
+                      max="120"
+                      value={bubbleDelay} 
+                      onChange={e => setBubbleDelay(Math.max(0, Number(e.target.value)))} 
+                      className="w-full bg-midnight-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-gold-500 transition-colors" 
+                      placeholder="Ex: 20"
+                    />
+                    <p className="text-[10px] text-slate-500">Tempo após o carregamento da página para o balão surgir.</p>
+                  </div>
+
+                  {/* Duração da Exibição */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-slate-300 flex items-center gap-2">
+                      <Clock size={12} className="text-gold-400" />
+                      Tempo de Exibição (segundos)
+                    </label>
+                    <input 
+                      type="number" 
+                      min="1"
+                      max="120"
+                      value={bubbleDuration} 
+                      onChange={e => setBubbleDuration(Math.max(1, Number(e.target.value)))} 
+                      className="w-full bg-midnight-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-gold-500 transition-colors" 
+                      placeholder="Ex: 6"
+                    />
+                    <p className="text-[10px] text-slate-500">Por quanto tempo o balão permanece visível antes do fade.</p>
+                  </div>
+                </div>
+              )}
 
               {/* Mensagem Inicial Padrão no App do WhatsApp */}
               <div className="space-y-2">

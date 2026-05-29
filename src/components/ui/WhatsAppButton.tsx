@@ -17,6 +17,10 @@ export default function WhatsAppButton() {
   const [phoneNumber, setPhoneNumber] = useState(DEFAULT_PHONE);
   const [bubbleMessage, setBubbleMessage] = useState(DEFAULT_BUBBLE_MESSAGE);
   const [defaultMessage, setDefaultMessage] = useState(DEFAULT_MESSAGE);
+  const [bubbleEnabled, setBubbleEnabled] = useState(true);
+  const [bubbleDelay, setBubbleDelay] = useState(2);
+  const [bubbleDuration, setBubbleDuration] = useState(6);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [showBubble, setShowBubble] = useState(false);
   const [displayText, setDisplayText] = useState("");
   const [isDismissed, setIsDismissed] = useState(false);
@@ -52,9 +56,20 @@ export default function WhatsAppButton() {
           if (val.default_message) {
             setDefaultMessage(val.default_message);
           }
+          if (val.bubble_enabled !== undefined) {
+            setBubbleEnabled(val.bubble_enabled !== false);
+          }
+          if (val.bubble_delay !== undefined) {
+            setBubbleDelay(Number(val.bubble_delay));
+          }
+          if (val.bubble_duration !== undefined) {
+            setBubbleDuration(Number(val.bubble_duration));
+          }
         }
       } catch (err) {
         console.error("Erro ao carregar configurações do WhatsApp:", err);
+      } finally {
+        setSettingsLoaded(true);
       }
     }
 
@@ -63,19 +78,21 @@ export default function WhatsAppButton() {
 
   // 2. Controlar o aparecimento inicial do balão de fala
   useEffect(() => {
-    // Aparece após 1.5s
+    if (!settingsLoaded || !bubbleEnabled || isDismissed) {
+      return;
+    }
+
+    const delayMs = bubbleDelay * 1000;
     const startTimer = setTimeout(() => {
-      if (!isDismissed) {
-        setShowBubble(true);
-      }
-    }, 1500);
+      setShowBubble(true);
+    }, delayMs);
 
     return () => {
       clearTimeout(startTimer);
       if (typingTimerRef.current) clearInterval(typingTimerRef.current);
       if (fadeOutTimerRef.current) clearTimeout(fadeOutTimerRef.current);
     };
-  }, [isDismissed]);
+  }, [isDismissed, settingsLoaded, bubbleEnabled, bubbleDelay]);
 
   // 3. Efeito Máquina de Escrever (Typewriter)
   useEffect(() => {
@@ -106,14 +123,15 @@ export default function WhatsAppButton() {
   // 4. Efeito para sumir após terminar de digitação
   useEffect(() => {
     if (displayText && displayText === fullText) {
+      const durationMs = bubbleDuration * 1000;
       fadeOutTimerRef.current = setTimeout(() => {
         setShowBubble(false);
-      }, 6000);
+      }, durationMs);
     }
     return () => {
       if (fadeOutTimerRef.current) clearTimeout(fadeOutTimerRef.current);
     };
-  }, [displayText, fullText]);
+  }, [displayText, fullText, bubbleDuration]);
 
   const handleCloseBubble = (e: React.MouseEvent) => {
     e.stopPropagation();
