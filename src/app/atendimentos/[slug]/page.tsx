@@ -125,7 +125,7 @@ export default async function AtendimentoPage({ params, searchParams }: { params
               <div className="md:w-1/3 flex flex-col gap-6">
                  
                  <RevealText delay={0.65} className="bg-midnight-950/80 border border-white/5 rounded-2xl p-6 hover:border-gold-500/20 transition-colors">
-                     <h4 className="text-white font-medium mb-3">Valores do Encontro</h4>
+                     <h4 className="text-white font-medium mb-3">Sobre o Atendimento</h4>
                      
                      {/* Preço e Duração Agrupados */}
                      <div className="flex flex-col gap-2.5 border-b border-white/10 pb-4">

@@ -19,9 +19,9 @@ export default function Footer() {
         <div className="col-span-1 md:col-span-2">
           <Link href="/" className="flex items-center gap-3 mb-6">
             <div className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center overflow-visible">
-              <Image src="/logo.png" alt="Academia de Lótus" width={80} height={80} className="object-contain w-full h-full" />
+              <Image src="/logo.png" alt="Academia Espiritual de Lótus" width={80} height={80} className="object-contain w-full h-full" />
             </div>
-            <span className="font-serif text-2xl text-gold-400 tracking-wide">Academia de Lótus</span>
+            <span className="font-serif text-2xl text-gold-400 tracking-wide">Academia Espiritual de Lótus</span>
           </Link>
           <p className="text-slate-400 text-sm max-w-md leading-relaxed font-light">
             Um espaço dedicado ao seu desenvolvimento espiritual, autoconhecimento e bem-estar integral através de cursos e terapias conectadas com sua essência primária.

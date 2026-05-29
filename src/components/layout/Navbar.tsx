@@ -26,30 +26,31 @@ export default function Navbar({ user }: { user: SupabaseUser | null }) {
     <>
       {/* ===== TOP BAR (visível em todos os tamanhos) ===== */}
       <header className="fixed top-0 z-50 w-full border-b border-white/5 bg-midnight-950/70 backdrop-blur-xl">
-        <div className="container mx-auto px-6 h-20 md:h-24 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 group">
+        <div className="container mx-auto px-6 h-20 md:h-24 flex items-center justify-between md:justify-center relative">
+          <Link href="/" className="flex items-center gap-3 group shrink-0 w-full md:w-auto md:absolute md:left-6 md:top-1/2 md:-translate-y-1/2">
             <div className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center transition-all duration-500 overflow-visible relative">
-              <Image src="/logo.png" alt="Academia de Lótus" width={80} height={80} className="object-contain w-full h-full transition-all duration-500" />
+              <Image src="/logo.png" alt="Academia Espiritual de Lótus" width={80} height={80} className="object-contain w-full h-full transition-all duration-500" />
             </div>
-            <span className="font-serif tracking-widest text-slate-200 group-hover:text-gold-400 transition-colors uppercase text-xs md:text-sm">Academia de Lótus</span>
+            <span className="font-serif tracking-widest text-slate-200 group-hover:text-gold-400 transition-colors uppercase text-xs md:text-sm whitespace-nowrap">Academia Espiritual de Lótus</span>
           </Link>
           
           {/* Desktop nav links */}
-          <nav className="hidden md:flex items-center gap-10 text-sm font-medium tracking-wide text-slate-300">
-            <Link href="/" className="hover:text-gold-400 hover:tracking-widest transition-all duration-300">Início</Link>
-            <Link href="/cursos" className="hover:text-gold-400 hover:tracking-widest transition-all duration-300">Cursos</Link>
-            <Link href="/atendimentos" className="hover:text-gold-400 hover:tracking-widest transition-all duration-300">Atendimentos</Link>
-            <Link href="/terapeutas" className="hover:text-gold-400 hover:tracking-widest transition-all duration-300">Terapeutas</Link>
+          <nav className="hidden md:flex items-center gap-6 xl:gap-10 text-sm font-medium tracking-wide text-slate-300">
+            <Link href="/" className="hover:text-gold-400 hover:tracking-widest transition-all duration-300 whitespace-nowrap">Início</Link>
+            <Link href="/cursos" className="hover:text-gold-400 hover:tracking-widest transition-all duration-300 whitespace-nowrap">Cursos</Link>
+            <Link href="/atendimentos" className="hover:text-gold-400 hover:tracking-widest transition-all duration-300 whitespace-nowrap">Atendimentos</Link>
+            <Link href="/terapeutas" className="hover:text-gold-400 hover:tracking-widest transition-all duration-300 whitespace-nowrap">Terapeutas</Link>
             {user && (
-              <Link href="/jornada" className="text-gold-400 hover:text-gold-300 hover:tracking-widest transition-all duration-300 flex items-center gap-1.5">
-                <Sparkles size={14} /> Meu Perfil
+              <Link href="/jornada" className="text-gold-400 hover:text-gold-300 hover:tracking-widest transition-all duration-300 flex items-center gap-1.5 whitespace-nowrap shrink-0">
+                <Sparkles size={14} className="shrink-0" />
+                <span className="whitespace-nowrap">Meu Perfil</span>
               </Link>
             )}
           </nav>
           
           {/* Desktop login/user button */}
           {user ? (
-            <div className="hidden md:flex items-center gap-4">
+            <div className="hidden md:flex items-center gap-4 md:absolute md:right-6 md:top-1/2 md:-translate-y-1/2">
               <Link href="/jornada" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                 {user.user_metadata?.avatar_url ? (
                   <img src={user.user_metadata.avatar_url} alt="Avatar" className="w-8 h-8 rounded-full border border-gold-500/30 object-cover" referrerPolicy="no-referrer" />
@@ -58,16 +59,16 @@ export default function Navbar({ user }: { user: SupabaseUser | null }) {
                     <User size={14} />
                   </div>
                 )}
-                <span className="text-sm text-slate-300 font-medium">{user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0]}</span>
+                <span className="text-sm text-slate-300 font-medium whitespace-nowrap">{user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0]}</span>
               </Link>
               <button onClick={handleLogout} className="text-slate-500 hover:text-red-400 transition-colors" title="Sair">
                 <LogOut size={18} />
               </button>
             </div>
           ) : (
-            <Link href="/login" className="hidden md:flex items-center gap-2 text-sm font-medium px-5 py-2.5 text-gold-400 border border-gold-500/30 rounded-full hover:bg-gold-500/10 hover:border-gold-400 transition-all duration-300 shadow-sm leading-none">
+            <Link href="/login" className="hidden md:flex items-center gap-2 text-sm font-medium px-5 py-2.5 text-gold-400 border border-gold-500/30 rounded-full hover:bg-gold-500/10 hover:border-gold-400 transition-all duration-300 shadow-sm leading-none md:absolute md:right-6 md:top-1/2 md:-translate-y-1/2">
               <User size={16} />
-              <span className="mb-[-2px]">Entrar</span>
+              <span className="mb-[-2px] whitespace-nowrap">Entrar</span>
             </Link>
           )}
         </div>
