@@ -20,7 +20,7 @@ function LoginContent() {
   
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get('next') || '/';
+  const redirectTo = searchParams.get('next') || searchParams.get('redirect_to') || '/';
   
   const supabase = createClient();
 
@@ -37,10 +37,17 @@ function LoginContent() {
     try {
       setLoading(true);
       setError(null);
+      
+      // Salva o destino de redirecionamento em um cookie temporário de 10 minutos antes de ir para o Google
+      if (redirectTo && redirectTo !== '/') {
+        const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
+        document.cookie = `sb_redirect_to=${encodeURIComponent(redirectTo)}; path=/; max-age=600; SameSite=Lax${secureFlag}`;
+      }
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${getSafeOrigin()}/auth/callback` // Removido o parâmetro ?next para evitar bloqueio do Supabase
+          redirectTo: `${getSafeOrigin()}/auth/callback` // Removido o parâmetro ?next para evitar bloqueio do Supabase, agora usamos cookie
         }
       });
       if (error) throw error;
